@@ -20,8 +20,13 @@ Bu dosya **yapılacaklar** odaklıdır. Ürün fazları için bkz. [`FINATURA_RO
 
 | Host | Public DNS A | Traefik (Host → IP) | Let's Encrypt |
 |------|--------------|---------------------|---------------|
-| `finatura.app` / `www` | ✅ `72.60.182.107` | ✅ | ✅ CN=finatura.app |
-| `app` / `login` / `mm` / `api` | ⚠ henüz yok / yayılmıyor | ✅ 200 | ❌ TRAEFIK DEFAULT (DNS sonrası yenilenecek) |
+| `finatura.app` / `www` | ✅ | ✅ | ✅ |
+| `app.finatura.app` | ✅ `72.60.182.107` | ✅ | ✅ CN=app |
+| `mm.finatura.app` | ✅ | ✅ | ✅ CN=mm |
+| `api.finatura.app` | ✅ | ✅ | ✅ CN=api |
+| `login.finatura.app` | ❌ henüz yok | ✅ (IP+Host) | ❌ default cert |
+
+> Marketing CTA geçici olarak `https://app.finatura.app` (aynı Flutter image). `login` A/CNAME eklenince Dokploy web env’i `VITE_APP_URL=https://login.finatura.app` yapıp redeploy edin.
 
 ---
 
@@ -29,10 +34,10 @@ Bu dosya **yapılacaklar** odaklıdır. Ürün fazları için bkz. [`FINATURA_RO
 
 Registrar’da **A kaydı** → `72.60.182.107` (www gibi CNAME→apex de olur):
 
-- [ ] `app.finatura.app`
-- [ ] `login.finatura.app`
-- [ ] `mm.finatura.app`
-- [ ] `api.finatura.app`
+- [x] `app.finatura.app`
+- [ ] `login.finatura.app` ← **eksik** (A → `72.60.182.107` veya CNAME → `app.finatura.app`)
+- [x] `mm.finatura.app`
+- [x] `api.finatura.app`
 
 > Not: Apex/www çalışıyor; alt alanlar 8.8.8.8 / 1.1.1.1’de hâlâ boşsa kayıt eklenmemiş veya yayılmamış demektir. DNS gelince Dokploy’da ilgili compose’u **Redeploy** veya domain’i kaydet→Let’s Encrypt yenilenir.
 
