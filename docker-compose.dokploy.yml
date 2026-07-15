@@ -1,0 +1,42 @@
+# Dokploy — Finatura marketing web (RetailEX + Kargo ile aynı sunucuda çakışmaz)
+#
+# Önemli — bu compose PostgreSQL AÇMAZ.
+# RetailEX host :5432 / saas_postgres_data ve Kargo kargomkapinda_pg_data’ya dokunmaz.
+#
+# Uyum kuralları (kargo ile aynı model):
+#   - Ağ: berqenas_net (RetailEX ile paylaşılır; dokploy-network değil)
+#   - Servis adı: finatura_web (saas_postgres / kargomkapinda_* ile karışmaz)
+#   - Volume: yok (statik nginx)
+#   - Host portu YOK — RetailEX 5432 / 3001–3020 / 8080 ve Kargo internal DB korunur
+#
+# Dokploy ayarları:
+#   Type: Docker Compose
+#   Repo: ferhatdeveloper/finatura · branch: main (veya bu PR dalı)
+#   Compose Path: ./docker-compose.dokploy.yml
+#   Domains → servis: finatura_web · port: 80 · host: finatura.app (+ www isteğe bağlı)
+#
+# Alternatif (tek container): Application → Dockerfile
+#   Dockerfile: apps/web/Dockerfile · Context: apps/web · Port: 80 · Domain: finatura.app
+
+services:
+  finatura_web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    image: finatura-web:latest
+    restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - berqenas_net
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net

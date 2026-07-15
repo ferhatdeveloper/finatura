@@ -2,7 +2,7 @@
 
 > Esnafın muhasebe yükünü sıfıra indiren, sektör odaklı (oto galeri, kuyumculuk, emlak) multi-tenant mali operasyon platformu.
 
-**Alan adı:** [finatura.app](https://finatura.app)
+**Alan adı:** [finatura.app](https://finatura.app) · VPS: `72.60.182.107` (RetailEX / Kargo ile aynı Dokploy)
 
 ## Vizyon
 
@@ -23,25 +23,33 @@ Yol haritası ve aşamalar için bkz. [`FINATURA_ROADMAP.md`](./FINATURA_ROADMAP
 ```
 Finatura/
 ├── apps/
-│   ├── web/              # Marketing one-page (Vite) — Dokploy / Docker
-│   ├── mobile/           # Flutter istemci
-│   └── accountant-portal/# Mali müşavir portalı (UI mock)
-├── services/             # Backend servisler (router, ajanlar, API’ler)
-├── database/             # Merkez + kiracı şablon SQL şemaları
-├── packages/             # Paylaşılan kütüphaneler / ortak sözleşmeler
-├── docker-compose.yml    # Yerel PostgreSQL (merkez + örnek kiracı)
-├── docker-compose.web.yml# Marketing site (nginx) — Dokploy / yerel
-├── FINATURA_ROADMAP.md   # Ürün yol haritası
-└── README.md             # Bu dosya
+│   ├── web/                    # Marketing one-page (Vite) — Dokploy / Docker
+│   ├── mobile/                 # Flutter istemci
+│   └── accountant-portal/      # Mali müşavir portalı (UI mock)
+├── services/                   # Backend servisler (router, ajanlar, API’ler)
+├── database/                   # Merkez + kiracı şablon SQL şemaları
+├── packages/                   # Paylaşılan kütüphaneler / ortak sözleşmeler
+├── docker-compose.yml          # Yerel PostgreSQL (5440 / 5441 — çakışmasız)
+├── docker-compose.dokploy.yml  # Production marketing (berqenas_net, DB yok)
+├── docker-compose.web.yml      # Marketing yerel Compose
+├── scripts/vps-dokploy-finatura-web.sh
+├── FINATURA_ROADMAP.md
+└── README.md
 ```
 
-| Klasör | Amaç |
-|--------|------|
-| `apps/web` | Tanıtım sitesi (landing + Giriş/Kayıt) — Dokploy deploy |
-| `apps/` | Kullanıcıya dönük uygulamalar (mobil / web istemcileri) |
-| `services/` | Dinamik DB router, Document / Finteo (+ matching köprüsü) / Matching / Luca ajanları |
-| `database/` | `central/` şeması ve `tenant_template/` kopyalanabilir şablon |
-| `packages/` | Birden fazla app/service’in paylaştığı kod ve tip tanımları |
+## Aynı VPS’te RetailEX + Kargo ile çakışmama
+
+Marketing deploy **PostgreSQL açmaz**. Host port bağlamaz.
+
+| | RetailEX | Kargo | Finatura (marketing) |
+|---|----------|-------|----------------------|
+| Ağ | `berqenas_net` | `berqenas_net` | `berqenas_net` |
+| PostgreSQL volume | `saas_postgres_data` | `kargomkapinda_pg_data` | **yok** |
+| Host portları | `:5432`, `:3001–3020`, `:8080` | yok (internal) | **yok** |
+| Servis adı | `saas_postgres`, `postgrest_*` | `kargomkapinda_*` | `finatura_web` |
+| Domain | `retailex.app` | (portal domain) | **`finatura.app`** |
+
+Yerel Finatura DB host portları: **`:5440`** (merkez), **`:5441`** (örnek kiracı) — RetailEX `:5432` / Kargo `:5433` ile çakışmaz.
 
 ## Marketing site (yerel)
 
@@ -53,23 +61,34 @@ npm run dev
 
 Açılır: `http://localhost:5173` — rotalar `/`, `/login`, `/register`.
 
-## Dokploy deploy (marketing web)
+## Dokploy deploy (marketing web → finatura.app)
 
-**Vercel kullanılmıyor.** Production hedefi [Dokploy](https://dokploy.com).
+**Vercel kullanılmıyor.** Panel: `http://72.60.182.107:3000`
 
-### Önerilen: Application → Dockerfile
+### Önerilen (aynı sunucu): Docker Compose
 
-1. Dokploy → GitHub bağla (`ferhatdeveloper/finatura`).
-2. **Application** oluştur → build type **Dockerfile**.
-3. **Dockerfile path:** `apps/web/Dockerfile` · **Context:** `apps/web`.
-4. **Port:** `80` · Domains’e `finatura.app` ekle → deploy.
-5. Sağlık kontrolü: `/health` (Dockerfile içinde `HEALTHCHECK` tanımlı).
+1. Dokploy → yeni **Docker Compose** servisi
+2. Repo: `ferhatdeveloper/finatura` · branch: `main`
+3. **Compose Path:** `./docker-compose.dokploy.yml`
+4. **Domains** → servis `finatura_web` · port **80** · host **`finatura.app`** (isteğe `www.finatura.app`)
+5. Deploy — SSL Traefik/Let’s Encrypt ile
 
-### Alternatif: Docker Compose
+Bu compose `berqenas_net` kullanır; `saas_postgres` / `kargomkapinda_db` konteynerlerine dokunmaz.
 
-Compose path: `docker-compose.web.yml` · Domains → servis `web`, port `80`.
+### Alternatif: Application → Dockerfile
 
-Yerel doğrulama:
+1. Dockerfile path: `apps/web/Dockerfile` · Context: `apps/web`
+2. Port: `80` · Domain: `finatura.app`
+3. Health: `/health`
+
+### Acil smoke (SSH ile VPS)
+
+```bash
+sudo bash scripts/vps-dokploy-finatura-web.sh
+# Domain’i yine Dokploy Domains veya Traefik’ten finatura.app → port 80 bağlayın
+```
+
+Yerel Docker doğrulama:
 
 ```bash
 docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
@@ -80,7 +99,7 @@ Ayrıntı: [`apps/web/README.md`](./apps/web/README.md).
 
 ## Yerel geliştirme (Docker — PostgreSQL)
 
-Önkoşul: [Docker Desktop](https://www.docker.com/products/docker-desktop/) veya Docker Engine + Compose v2.
+Önkoşul: Docker Engine + Compose v2.
 
 ```bash
 docker compose up -d
@@ -88,18 +107,12 @@ docker compose up -d
 
 | Servis | DB | Host port | Kullanıcı / parola |
 |--------|-----|-----------|-------------------|
-| `postgres-central` | `finatura_central` | `5432` | `finatura` / `finatura_dev` |
-| `postgres-tenant-ornek` | `tenant_ornek` | `5433` | `finatura_tenant` / `finatura_tenant_dev` |
+| `postgres-central` | `finatura_central` | `5440` | `finatura` / `finatura_dev` |
+| `postgres-tenant-ornek` | `tenant_ornek` | `5441` | `finatura_tenant` / `finatura_tenant_dev` |
 
 İlk açılışta Compose, `database/central/` ve `database/tenant_template/` altındaki `.sql` dosyalarını ilgili konteynere init olarak uygular.
 
-Durdurmak:
-
-```bash
-docker compose down
-```
-
-Veriyi de silmek için: `docker compose down -v`.
+Durdurmak: `docker compose down` · veriyi silmek: `docker compose down -v`.
 
 ## Katkı & sahiplik
 
