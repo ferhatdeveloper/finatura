@@ -33,7 +33,8 @@ function navMarkup({ auth = false } = {}) {
         ${
           auth
             ? ""
-            : `<a class="nav-anchor" href="#sektorler">Sektörler</a>`
+            : `<a class="nav-anchor" href="#video">Tanıtım</a>
+        <a class="nav-anchor" href="#sektorler">Sektörler</a>`
         }
         <a class="btn btn-ghost" href="/login" data-link>Giriş</a>
         <a class="btn btn-solid" href="/register" data-link>Kayıt Ol</a>
@@ -132,6 +133,27 @@ function landingPage() {
             <a class="btn btn-solid btn-lg" href="/register" data-link>Kayıt Ol</a>
             <a class="btn btn-ghost btn-lg" href="/login" data-link>Giriş</a>
           </div>
+        </div>
+      </section>
+
+      <section class="section demo-video" id="video">
+        <div class="section-inner">
+          <p class="section-label reveal">Tanıtım</p>
+          <h2 class="section-title reveal">Finatura’yı kısaca izleyin</h2>
+          <p class="section-lead reveal">
+            Belgeyi tarayın, e-Fatura hazırlansın, banka ve Luca aynı akışta.
+          </p>
+          <video
+            class="demo-video-player reveal"
+            controls
+            playsinline
+            muted
+            autoplay
+            preload="metadata"
+            aria-label="Finatura tanıtım videosu"
+          >
+            <source src="/video/FINATURA_TANITIM_VIDEOSU.mp4" type="video/mp4" />
+          </video>
         </div>
       </section>
 

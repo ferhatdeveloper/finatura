@@ -463,6 +463,38 @@ input {
   transform: translateY(0);
 }
 
+/* —— Demo video —— */
+.demo-video {
+  background:
+    linear-gradient(180deg, var(--ink) 0%, #0f2a23 55%, #143029 100%);
+  padding-top: clamp(3.5rem, 9vw, 6rem);
+  padding-bottom: clamp(3.5rem, 9vw, 6rem);
+}
+
+.demo-video .section-label {
+  color: var(--brass);
+}
+
+.demo-video .section-title {
+  color: var(--mist);
+}
+
+.demo-video .section-lead {
+  color: rgba(220, 232, 226, 0.68);
+  margin-bottom: 1.75rem;
+}
+
+.demo-video-player {
+  display: block;
+  width: 100%;
+  max-width: 1120px;
+  aspect-ratio: 16 / 9;
+  background: #050f0c;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}
+
 /* —— How it works —— */
 .how {
   background:
