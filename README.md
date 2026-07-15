@@ -4,6 +4,8 @@
 
 **Alan adı:** [finatura.app](https://finatura.app) · VPS: `72.60.182.107` (RetailEX / Kargo ile aynı Dokploy)
 
+**Git + Dokploy yapılacaklar:** [`docs/DOKPLOY_GIT_ROADMAP.md`](docs/DOKPLOY_GIT_ROADMAP.md) · Panel: http://berqenas.cloud:3000
+
 ## Vizyon
 
 Galericilerin noter sözleşmelerini torbalarda taşıdığı, kuyumcuların has altın hesabı için ajandalarında kaybolduğu, emlakçıların tapu fotokopilerini klasörlerde biriktirdiği dünyayı sadeleştirmek.
