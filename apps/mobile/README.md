@@ -8,38 +8,44 @@ Production web: `app.finatura.app` ve `login.finatura.app` (aynı Docker image).
 
 | Modül | Yol | Durum |
 |-------|-----|--------|
-| **Auth** | `lib/features/auth/` | Login + `firmaKodu` → gateway; fail → demo mock |
-| **Scan (AŞAMA 2.4)** | `lib/features/scan/` | Stub kamera + crop + Document Agent HTTP |
+| **Auth** | `lib/features/auth/` | Login + `firmaKodu` → gateway (varsayılan mock kapalı) |
+| **Scan (AŞAMA 2.4)** | `lib/features/scan/` | Gerçek kamera / galeri + crop + Document Agent multipart |
 | Settlement | `lib/features/settlement/` | Veresiye mahsup (ayrı sahiplik) |
 
 ### Auth (firma kodu)
 
 - `POST {API_BASE_URL}/auth/login` → `{ email, password, firmaKodu }`
 - Token: `shared_preferences` (web → localStorage)
-- Demo (gateway fail): `demo@finatura.app` / `demo1234` / `DEMO-GALERI`
+- Demo (gateway stub): `demo@finatura.app` / `demo1234` / `DEMO-GALERI`
+- İstemci mock kapalı; açmak için `--dart-define=AUTH_ALLOW_MOCK=true`
 
-### Camera / document crop + OCR
+### Camera / document crop + OCR (gerçek)
 
-- Ekran: `DocumentScanScreen` → `/scan` → Document Agent → sonuç alanları
-- Detay: [`lib/features/scan/README.md`](lib/features/scan/README.md)
+- Ekran: `DocumentScanScreen` → canlı kamera (veya web’de dosya) → crop → multipart `file` → Document Agent
+- Varsayılan: `SCAN_NATIVE_CAMERA=true`, `SCAN_USE_MOCK_FALLBACK=false`
+- Detay / test: [`lib/features/scan/README.md`](lib/features/scan/README.md)
 
 ```bash
-# API Gateway (opsiyonel — yoksa demo mock)
-cd services/api-gateway && npm run dev   # :3000
-
-# Document Agent (scan)
+# Document Agent (gerçek OCR/parse)
 cd services/document-agent && npm run dev   # :3100
 
-# Mobil
+# API Gateway (auth için gerekli)
+cd services/api-gateway && npm run dev   # :3000
+
+# Android emülatör
 cd apps/mobile
 flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000 \
   --dart-define=DOCUMENT_AGENT_BASE_URL=http://10.0.2.2:3100
+
+# Web (dosya/galeri — mock OCR yok)
+flutter run -d chrome \
+  --dart-define=DOCUMENT_AGENT_BASE_URL=http://localhost:3100
 ```
 
 ## Platform
 
-Kamera + `INTERNET` izinleri AndroidManifest / Info.plist’te. Native `camera` paketi pubspec’te yorumlu; `NativeCameraAdapter` + `SCAN_NATIVE_CAMERA` ile açılır.
+`camera`, `permission_handler`, `image_picker` aktif. AndroidManifest / Info.plist kamera + galeri + `INTERNET` izinleri tanımlı.
 
 ## Flutter Web (yerel)
 
@@ -47,7 +53,8 @@ Kamera + `INTERNET` izinleri AndroidManifest / Info.plist’te. Native `camera` 
 cd apps/mobile
 flutter pub get
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
-# Gateway yoksa formdaki demo kimlik bilgileriyle mock login çalışır.
+# İsteğe bağlı istemci mock: --dart-define=AUTH_ALLOW_MOCK=true
+
 
 # production bundle
 flutter build web --release --base-href / \

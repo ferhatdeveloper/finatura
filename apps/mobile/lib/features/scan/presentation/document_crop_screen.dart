@@ -1,6 +1,5 @@
-import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../models/detected_quad.dart';
@@ -15,10 +14,14 @@ class DocumentCropScreen extends StatefulWidget {
     required this.imagePath,
     required this.initialQuad,
     required this.documentType,
+    this.imageBytes,
+    this.filename,
     this.isStubImage = false,
   });
 
   final String imagePath;
+  final Uint8List? imageBytes;
+  final String? filename;
   final DetectedQuad initialQuad;
   final DocumentType documentType;
   final bool isStubImage;
@@ -42,6 +45,8 @@ class _DocumentCropScreenState extends State<DocumentCropScreen> {
     Navigator.of(context).pop(
       DocumentScanResult(
         imagePath: widget.imagePath,
+        imageBytes: widget.imageBytes,
+        filename: widget.filename,
         quad: _quad,
         documentType: widget.documentType,
         isStub: widget.isStubImage,
@@ -51,9 +56,12 @@ class _DocumentCropScreenState extends State<DocumentCropScreen> {
   }
 
   Widget _buildImageBackdrop() {
-    if (widget.isStubImage ||
-        widget.imagePath.startsWith('stub://') ||
-        kIsWeb) {
+    final bytes = widget.imageBytes;
+    if (bytes != null && bytes.isNotEmpty) {
+      return Image.memory(bytes, fit: BoxFit.cover);
+    }
+
+    if (widget.isStubImage || widget.imagePath.startsWith('stub://')) {
       return Container(
         color: const Color(0xFF1A2F28),
         alignment: Alignment.center,
@@ -67,20 +75,15 @@ class _DocumentCropScreenState extends State<DocumentCropScreen> {
       );
     }
 
-    final file = File(widget.imagePath);
-    if (!file.existsSync()) {
-      return Container(
-        color: Colors.black54,
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.broken_image_outlined,
-          color: Colors.white54,
-          size: 48,
-        ),
-      );
-    }
-
-    return Image.file(file, fit: BoxFit.cover);
+    return Container(
+      color: Colors.black54,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.broken_image_outlined,
+        color: Colors.white54,
+        size: 48,
+      ),
+    );
   }
 
   @override

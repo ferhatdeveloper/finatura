@@ -12,13 +12,15 @@ class CameraViewport extends StatelessWidget {
     super.key,
     required this.quad,
     this.previewChild,
-    this.isStub = true,
+    this.isStub = false,
+    this.isPickerOnly = false,
     this.statusLabel,
   });
 
   final DetectedQuad? quad;
   final Widget? previewChild;
   final bool isStub;
+  final bool isPickerOnly;
   final String? statusLabel;
 
   @override
@@ -54,7 +56,11 @@ class CameraViewport extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          isStub ? 'Stub kamera önizleme' : 'Kamera önizleme',
+                          isStub
+                              ? 'Stub kamera önizleme'
+                              : isPickerOnly
+                                  ? 'Dosya veya galeri ile tara'
+                                  : 'Kamera önizleme',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.55),
                             fontSize: 14,

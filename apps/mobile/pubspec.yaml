@@ -13,12 +13,10 @@ dependencies:
   http: ^1.2.2
   shared_preferences: ^2.5.5
 
-  # --- Opsiyonel native kamera (AŞAMA 2.4) ---
-  # Açmak için yorumları kaldır → flutter pub get → tam native rebuild.
-  # Ardından: --dart-define=SCAN_NATIVE_CAMERA=true
-  # camera: ^0.11.0+2
-  # permission_handler: ^11.3.1
-  # image_picker: ^1.1.2
+  # Gerçek kamera / galeri (AŞAMA 2.4) — SCAN_NATIVE_CAMERA varsayılan true
+  camera: ^0.11.0+2
+  permission_handler: ^11.3.1
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

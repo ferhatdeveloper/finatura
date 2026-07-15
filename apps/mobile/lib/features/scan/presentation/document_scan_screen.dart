@@ -1,19 +1,22 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../models/captured_still.dart';
 import '../models/detected_quad.dart';
 import '../models/document_analyze_result.dart';
 import '../models/document_scan_result.dart';
 import '../models/document_type.dart';
 import '../services/camera_scan_controller.dart';
 import '../services/document_agent_service.dart';
+import '../services/scan_image_source.dart';
 import 'document_analyze_result_screen.dart';
 import 'document_crop_screen.dart';
 import 'widgets/camera_viewport.dart';
 import 'widgets/scan_shutter_bar.dart';
 
-/// Evrak tarama — kamera + canlı kenar overlay → crop → Document Agent.
+/// Evrak tarama — gerçek kamera / dosya → crop → Document Agent multipart.
 ///
 /// Navigasyon: `Navigator.pushNamed(context, DocumentScanScreen.routeName)`
 /// Dönüş tipi: [DocumentAnalyzeResult]?
@@ -22,12 +25,14 @@ class DocumentScanScreen extends StatefulWidget {
     super.key,
     this.initialDocumentType,
     this.documentAgent,
+    this.imageSource,
   });
 
   static const routeName = '/scan';
 
   final DocumentType? initialDocumentType;
   final DocumentAgentService? documentAgent;
+  final ScanImageSource? imageSource;
 
   @override
   State<DocumentScanScreen> createState() => _DocumentScanScreenState();
@@ -36,6 +41,7 @@ class DocumentScanScreen extends StatefulWidget {
 class _DocumentScanScreenState extends State<DocumentScanScreen> {
   late final CameraScanController _controller;
   late final DocumentAgentService _agent;
+  late final ScanImageSource _imageSource;
   StreamSubscription<DetectedQuad?>? _quadSub;
   DetectedQuad? _quad;
   late DocumentType _documentType;
@@ -48,6 +54,7 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
     _documentType = widget.initialDocumentType ?? DocumentType.noterSozlesmesi;
     _controller = CameraScanController();
     _agent = widget.documentAgent ?? DocumentAgentService();
+    _imageSource = widget.imageSource ?? ScanImageSource();
     _bootstrap();
   }
 
@@ -62,8 +69,41 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
   Future<void> _onCapture() async {
     if (_analyzing) return;
 
-    final path = await _controller.captureStill();
-    final refined = await _controller.edgeDetection.detectFromImagePath(path) ??
+    CapturedStill still;
+    try {
+      if (_controller.hasLivePreview) {
+        still = await _controller.captureStill();
+      } else if (_controller.isStubCamera) {
+        still = await _controller.captureStill();
+      } else {
+        // Web / picker-only: sistem kamera veya dosya seçici
+        final picked = kIsWeb
+            ? await _imageSource.pickFromGallery()
+            : await _imageSource.pickFromCamera();
+        if (picked == null) return;
+        still = picked;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Yakalama başarısız: $e')),
+      );
+      return;
+    }
+
+    await _openCrop(still);
+  }
+
+  Future<void> _onPickGallery() async {
+    if (_analyzing) return;
+    final still = await _imageSource.pickFromGallery();
+    if (still == null || !mounted) return;
+    await _openCrop(still);
+  }
+
+  Future<void> _openCrop(CapturedStill still) async {
+    final refined = await _controller.edgeDetection
+            .detectFromImagePath(still.path) ??
         _quad ??
         DetectedQuad.defaultPreviewFrame();
 
@@ -71,10 +111,12 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
     final scan = await Navigator.of(context).push<DocumentScanResult?>(
       MaterialPageRoute(
         builder: (_) => DocumentCropScreen(
-          imagePath: path,
+          imagePath: still.path,
+          imageBytes: still.bytes,
+          filename: still.resolvedFilename,
           initialQuad: refined,
           documentType: _documentType,
-          isStubImage: _controller.isStubCamera,
+          isStubImage: _controller.isStubCamera && !still.hasImage,
         ),
       ),
     );
@@ -158,19 +200,26 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
     super.dispose();
   }
 
+  String get _statusLabel {
+    if (!_ready) return 'Kamera hazırlanıyor…';
+    if (_analyzing) return 'Analiz ediliyor…';
+    if (_controller.isStubCamera) {
+      return 'Stub mod (SCAN_NATIVE_CAMERA=false)';
+    }
+    if (_controller.hasLivePreview) {
+      final c = _quad?.confidence;
+      return c == null
+          ? 'Kenar aranıyor…'
+          : 'Kenar güveni: ${(c * 100).toStringAsFixed(0)}%';
+    }
+    if (kIsWeb) {
+      return 'Dosya / galeri seçin (gerçek görüntü)';
+    }
+    return 'Kamera izni yok — galeri veya sistem kamerası';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final confidence = _quad?.confidence;
-    final nativeHint = _controller.nativeEnable ? ' nativeEnable' : '';
-    final status = !_ready
-        ? 'Kamera hazırlanıyor…'
-        : _analyzing
-            ? 'Analiz ediliyor…'
-            : confidence == null
-                ? 'Kenar aranıyor…'
-                : 'Kenar güveni: ${(confidence * 100).toStringAsFixed(0)}%'
-                    '${_controller.isStubCamera ? ' (stub$nativeHint)' : ''}';
-
     return Scaffold(
       backgroundColor: const Color(0xFF0B1210),
       appBar: AppBar(
@@ -189,7 +238,8 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
                     quad: _quad,
                     previewChild: _controller.previewWidget,
                     isStub: _controller.isStubCamera,
-                    statusLabel: status,
+                    isPickerOnly: _controller.isPickerOnly,
+                    statusLabel: _statusLabel,
                   ),
                 ),
               ),
@@ -199,15 +249,8 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
                 onDocumentTypeChanged: (t) => setState(() => _documentType = t),
                 onCapture: (_ready && !_analyzing) ? _onCapture : () {},
                 captureEnabled: _ready && !_analyzing,
-                onPickGallery: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Galeri: image_picker pubspec’te açılınca bağlanacak',
-                      ),
-                    ),
-                  );
-                },
+                onPickGallery:
+                    (_ready && !_analyzing) ? _onPickGallery : () {},
               ),
             ],
           ),

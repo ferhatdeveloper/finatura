@@ -5,7 +5,8 @@ import '../models/detected_quad.dart';
 /// Gerçek implementasyon: kamera karesinden / galeri görselinden
 /// perspective transform için dört köşe üretir.
 ///
-/// Native plugin bağlanana kadar [MockEdgeDetectionService] kullanılır.
+/// Canlı kenar plugin bağlanana kadar [MockEdgeDetectionService] (yalnızca overlay UI).
+/// Yakalama ve Document Agent yolu gerçek görüntü kullanır.
 abstract class EdgeDetectionService {
   /// Canlı önizleme çerçevesinden anlık quad tahmini.
   Future<DetectedQuad?> detectFromPreviewFrame(List<int> frameBytes);

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/scan_api_config.dart';
@@ -10,12 +9,16 @@ import '../models/document_scan_result.dart';
 import '../models/document_type.dart';
 
 /// Document Agent HTTP istemcisi (`/api/v1/documents/analyze` | `analyze-text`).
+///
+/// Varsayılan: gerçek multipart görüntü; mock fallback kapalı.
 class DocumentAgentService {
   DocumentAgentService({
     http.Client? client,
-    this.baseUrl = ScanApiConfig.documentAgentBaseUrl,
-    this.useMockFallback = ScanApiConfig.useMockFallback,
-  }) : _client = client ?? http.Client();
+    String? baseUrl,
+    bool? useMockFallback,
+  })  : baseUrl = baseUrl ?? ScanApiConfig.documentAgentBaseUrl,
+        useMockFallback = useMockFallback ?? ScanApiConfig.useMockFallback,
+        _client = client ?? http.Client();
 
   final http.Client _client;
   final String baseUrl;
@@ -24,32 +27,32 @@ class DocumentAgentService {
   String get _analyzeUrl => '$baseUrl/api/v1/documents/analyze';
   String get _analyzeTextUrl => '$baseUrl/api/v1/documents/analyze-text';
 
-  /// Crop sonrası ana giriş: gerçek dosya → multipart; stub → analyze-text + mock.
+  /// Crop sonrası ana giriş: gerçek baytlar → multipart `file`.
   Future<DocumentAnalyzeResult> analyzeScan(DocumentScanResult scan) async {
     final hint = scan.documentType.apiHint;
-    final stubPath =
-        scan.isStub || scan.imagePath.startsWith('stub://') || kIsWeb;
+    final isStubPath =
+        scan.isStub || scan.imagePath.startsWith('stub://');
 
-    if (stubPath) {
-      return analyzeText(
-        ocrText: _fixtureOcrFor(scan.documentType),
-        documentTypeHint: hint,
-        filename: 'stub-capture.jpg',
+    if (isStubPath || !scan.hasUploadableImage) {
+      if (useMockFallback) {
+        return analyzeText(
+          ocrText: _fixtureOcrFor(scan.documentType),
+          documentTypeHint: hint,
+          filename: scan.filename ?? 'stub-capture.jpg',
+        );
+      }
+      return DocumentAnalyzeResult.mockFailure(
+        isStubPath
+            ? 'Stub yakalama — gerçek görüntü gerekli '
+                '(SCAN_NATIVE_CAMERA=true, mock kapalı).'
+            : 'Yüklenecek görüntü yok. Kameradan çekin veya dosya seçin.',
       );
     }
 
-    final file = File(scan.imagePath);
-    if (!file.existsSync()) {
-      if (useMockFallback) {
-        return _mockResult(scan.documentType, reason: 'Dosya bulunamadı');
-      }
-      return DocumentAnalyzeResult.mockFailure('Görüntü dosyası yok: ${scan.imagePath}');
-    }
-
-    return analyzeFile(
-      file: file,
+    return analyzeBytes(
+      bytes: scan.imageBytes!,
+      filename: scan.filename ?? 'scan.jpg',
       documentTypeHint: hint,
-      ocrText: null,
     );
   }
 
@@ -80,8 +83,10 @@ class DocumentAgentService {
     }
   }
 
-  Future<DocumentAnalyzeResult> analyzeFile({
-    required File file,
+  /// Multipart gerçek görüntü → `POST /api/v1/documents/analyze`.
+  Future<DocumentAnalyzeResult> analyzeBytes({
+    required Uint8List bytes,
+    required String filename,
     String? documentTypeHint,
     String? ocrText,
   }) async {
@@ -94,10 +99,14 @@ class DocumentAgentService {
         request.fields['ocrText'] = ocrText;
       }
       request.files.add(
-        await http.MultipartFile.fromPath('file', file.path),
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: filename,
+        ),
       );
 
-      final streamed = await request.send().timeout(const Duration(seconds: 45));
+      final streamed = await request.send().timeout(const Duration(seconds: 90));
       final response = await http.Response.fromStream(streamed);
       return _parseResponse(response);
     } catch (e) {
@@ -125,7 +134,6 @@ class DocumentAgentService {
       );
     }
 
-    // 422 = unknown / fields null — yine de body’yi göster
     if (response.statusCode >= 500) {
       if (useMockFallback) {
         return _mockResult(DocumentType.unknown, reason: 'HTTP ${response.statusCode}');

@@ -1,10 +1,11 @@
-/// Finatura AŞAMA 2.4 — Kamera & kenar algılama + Document Agent istemcisi.
+/// Finatura AŞAMA 2.4 — Gerçek kamera / galeri + Document Agent.
 ///
-/// Varsayılan stub kamera; `SCAN_NATIVE_CAMERA` / [CameraScanController.nativeEnable]
-/// ile native path hazır. Crop sonrası Document Agent HTTP analizi.
+/// Mobil: canlı `camera` önizleme (varsayılan). Web: `image_picker` dosya seçici.
+/// Crop sonrası multipart → `/api/v1/documents/analyze`. Mock fallback kapalı.
 library;
 
 export 'config/scan_api_config.dart';
+export 'models/captured_still.dart';
 export 'models/detected_quad.dart';
 export 'models/document_analyze_result.dart';
 export 'models/document_scan_result.dart';
@@ -21,3 +22,4 @@ export 'services/document_agent_service.dart';
 export 'services/edge_detection_service.dart';
 export 'services/mock_edge_detection_service.dart';
 export 'services/native_camera_adapter.dart';
+export 'services/scan_image_source.dart';

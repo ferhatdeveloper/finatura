@@ -1,21 +1,22 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../config/scan_api_config.dart';
+import '../models/captured_still.dart';
 import '../models/detected_quad.dart';
 import 'edge_detection_service.dart';
 import 'mock_edge_detection_service.dart';
 import 'native_camera_adapter.dart';
 
-/// Kamera oturumu + kenar algılama döngüsü koordinatörü.
+/// Kamera oturumu + kenar overlay döngüsü.
 ///
-/// Path:
-/// - `nativeEnable: false` (varsayılan) → [StubNativeCameraAdapter] + mock quad
-/// - `nativeEnable: true` → [PluginNativeCameraAdapter]; initialize başarısızsa stub
+/// - Mobil + `SCAN_NATIVE_CAMERA=true` (varsayılan) → [PluginNativeCameraAdapter]
+/// - Web / izin yok → canlı önizleme yok; galeri/dosya ile gerçek görüntü
+/// - `SCAN_NATIVE_CAMERA=false` → UI stub (`stub://`, boş bayt)
 ///
-/// Gerçek `camera` plugin: pubspec satırlarını aç → adapter’ı doldur →
-/// `--dart-define=SCAN_NATIVE_CAMERA=true`
+/// Kenar overlay şu an [MockEdgeDetectionService] (yalnızca UI); yakalama gerçek dosyadır.
 class CameraScanController {
   CameraScanController({
     EdgeDetectionService? edgeDetection,
@@ -24,7 +25,7 @@ class CameraScanController {
   })  : _edgeDetection = edgeDetection ?? MockEdgeDetectionService(),
         _nativeEnable = nativeEnable ?? ScanApiConfig.nativeCameraEnabled,
         _camera = cameraAdapter ??
-            ((nativeEnable ?? ScanApiConfig.nativeCameraEnabled)
+            ((nativeEnable ?? ScanApiConfig.nativeCameraEnabled) && !kIsWeb
                 ? PluginNativeCameraAdapter()
                 : StubNativeCameraAdapter());
 
@@ -37,35 +38,66 @@ class CameraScanController {
 
   Timer? _previewLoop;
   bool _initialized = false;
-  bool _usingStubCamera = true;
+  bool _usingStubCamera = false;
+  bool _livePreview = false;
+  bool _pickerOnly = false;
 
   Stream<DetectedQuad?> get quadStream => _quadController.stream;
   bool get isInitialized => _initialized;
+
+  /// `true` yalnızca bilinçli stub modu (`SCAN_NATIVE_CAMERA=false`).
   bool get isStubCamera => _usingStubCamera;
+
+  /// Canlı CameraPreview aktif mi?
+  bool get hasLivePreview => _livePreview;
+
+  /// Kamera yok / web: galeri veya image_picker kamera.
+  bool get isPickerOnly => _pickerOnly;
+
   bool get nativeEnable => _nativeEnable;
   EdgeDetectionService get edgeDetection => _edgeDetection;
 
-  /// Native bağlıysa [CameraPreview]; aksi halde `null` (viewport stub çizer).
   Widget? get previewWidget =>
-      _usingStubCamera ? null : _camera.buildPreview();
+      _livePreview ? _camera.buildPreview() : null;
 
   Future<void> initialize() async {
-    if (_nativeEnable) {
-      final ok = await _camera.initialize();
-      if (ok && _camera.isAvailable) {
-        _usingStubCamera = false;
-        _initialized = true;
-        _startMockPreviewLoop(); // Kenar: native edge gelene kadar mock
-        return;
-      }
+    if (!_nativeEnable) {
+      _usingStubCamera = true;
+      _livePreview = false;
+      _pickerOnly = false;
+      _initialized = true;
+      _startEdgeOverlayLoop();
+      return;
     }
 
-    _usingStubCamera = true;
+    if (kIsWeb) {
+      _usingStubCamera = false;
+      _livePreview = false;
+      _pickerOnly = true;
+      _initialized = true;
+      _startEdgeOverlayLoop();
+      return;
+    }
+
+    final ok = await _camera.initialize();
+    if (ok && _camera.isAvailable) {
+      _usingStubCamera = false;
+      _livePreview = true;
+      _pickerOnly = false;
+      _initialized = true;
+      _startEdgeOverlayLoop();
+      return;
+    }
+
+    // İzin/cihaz yok → stub yakalama YOK; galeri / picker kamera.
+    _usingStubCamera = false;
+    _livePreview = false;
+    _pickerOnly = true;
     _initialized = true;
-    _startMockPreviewLoop();
+    _startEdgeOverlayLoop();
   }
 
-  void _startMockPreviewLoop() {
+  void _startEdgeOverlayLoop() {
     _previewLoop?.cancel();
     _previewLoop = Timer.periodic(const Duration(milliseconds: 120), (_) async {
       final quad = await _edgeDetection.detectFromPreviewFrame(const []);
@@ -75,11 +107,16 @@ class CameraScanController {
     });
   }
 
-  Future<String> captureStill() async {
-    if (!_usingStubCamera) {
+  Future<CapturedStill> captureStill() async {
+    if (_livePreview) {
       return _camera.captureStill();
     }
-    return StubNativeCameraAdapter().captureStill();
+    if (_usingStubCamera) {
+      return StubNativeCameraAdapter().captureStill();
+    }
+    throw StateError(
+      'Canlı kamera yok — galeri veya dosya seçin (web / izin).',
+    );
   }
 
   Future<void> dispose() async {
@@ -88,5 +125,6 @@ class CameraScanController {
     await _camera.dispose();
     _edgeDetection.dispose();
     _initialized = false;
+    _livePreview = false;
   }
 }
