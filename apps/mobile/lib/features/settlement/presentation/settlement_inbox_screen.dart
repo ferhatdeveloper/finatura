@@ -10,6 +10,8 @@ import 'widgets/settle_match_sheet.dart';
 class SettlementInboxScreen extends StatefulWidget {
   const SettlementInboxScreen({super.key});
 
+  static const routeName = '/settlement';
+
   @override
   State<SettlementInboxScreen> createState() => _SettlementInboxScreenState();
 }

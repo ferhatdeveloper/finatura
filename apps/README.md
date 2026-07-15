@@ -2,8 +2,9 @@
 
 İstemci uygulamaları bu klasörde yaşar.
 
-| Uygulama | Açıklama |
-|----------|----------|
-| `web/` | Marketing one-page (Vite) — Giriş / Kayıt placeholder; Dokploy (`apps/web/Dockerfile`, port 80) |
-| `mobile/` | Flutter mobil istemci |
-| `accountant-portal/` | Mali müşavir portalı (UI mock) |
+| Uygulama | Host | Açıklama |
+|----------|------|----------|
+| `web/` | `www` | Marketing one-page (Vite) — Dokploy (`apps/web/Dockerfile`, port 80) |
+| `mobile/` | `app` / `login` | Flutter tek çatı (mobil + Web) — Dokploy (`apps/mobile/Dockerfile`, port 80) |
+| `dashboard/` | — | **Frozen/legacy** Vite operasyon paneli — production deploy yok |
+| `accountant-portal/` | `mm` | Mali müşavir portalı — kod doğrula → dönem onayla → Luca XML |

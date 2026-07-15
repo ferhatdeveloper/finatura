@@ -1,13 +1,49 @@
 import { Router } from 'express';
 import { issueTokenPair, verifyRefreshToken } from '../auth/jwt.js';
 import { authenticateUser, findUserById } from '../auth/stubUsers.js';
+import type { LoginTenantHint } from '../auth/userRepository.js';
 import { requireAuth } from '../middleware/auth.js';
 import { tenantContext } from '../middleware/tenantContext.js';
 
 export const authRouter = Router();
 
+function parseTenantHint(body: unknown): LoginTenantHint | undefined {
+  if (!body || typeof body !== 'object') return undefined;
+  const b = body as Record<string, unknown>;
+  const firmaKodu =
+    typeof b.firmaKodu === 'string' ? b.firmaKodu.trim() : undefined;
+  const tenantSlug =
+    typeof b.tenantSlug === 'string' ? b.tenantSlug.trim() : undefined;
+  const tenantId =
+    typeof b.tenantId === 'string' ? b.tenantId.trim() : undefined;
+
+  if (!firmaKodu && !tenantSlug && !tenantId) return undefined;
+  return {
+    ...(firmaKodu ? { firmaKodu } : {}),
+    ...(tenantSlug ? { tenantSlug } : {}),
+    ...(tenantId ? { tenantId } : {}),
+  };
+}
+
+function issueAuthTokens(user: {
+  userId: string;
+  email: string;
+  tenantId: string;
+  tenantSlug: string;
+  role: string;
+}) {
+  return issueTokenPair({
+    sub: user.userId,
+    email: user.email,
+    tenantId: user.tenantId,
+    tenantSlug: user.tenantSlug,
+    role: user.role,
+  });
+}
+
 /**
  * SaaS girişi — UserRepository (stub | central) üzerinden.
+ * Body: email, password; opsiyonel firmaKodu | tenantSlug | tenantId.
  * Üretim: AUTH_PROVIDER=central + public.users + bcrypt.
  */
 authRouter.post('/auth/login', async (req, res, next) => {
@@ -15,6 +51,7 @@ authRouter.post('/auth/login', async (req, res, next) => {
     const email = typeof req.body?.email === 'string' ? req.body.email : '';
     const password =
       typeof req.body?.password === 'string' ? req.body.password : '';
+    const tenantHint = parseTenantHint(req.body);
 
     if (!email || !password) {
       res.status(400).json({
@@ -24,21 +61,18 @@ authRouter.post('/auth/login', async (req, res, next) => {
       return;
     }
 
-    const user = await authenticateUser(email, password);
+    const user = await authenticateUser(email, password, tenantHint);
     if (!user) {
       res.status(401).json({
         error: 'invalid_credentials',
-        message: 'E-posta veya şifre hatalı',
+        message: tenantHint
+          ? 'E-posta, şifre veya firma kodu hatalı'
+          : 'E-posta veya şifre hatalı',
       });
       return;
     }
 
-    const tokens = issueTokenPair({
-      sub: user.userId,
-      email: user.email,
-      tenantId: user.tenantId,
-      tenantSlug: user.tenantSlug,
-    });
+    const tokens = issueAuthTokens(user);
 
     res.json({
       user: {
@@ -60,6 +94,7 @@ authRouter.post('/auth/refresh', async (req, res, next) => {
   try {
     const refreshToken =
       typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : '';
+    const tenantHint = parseTenantHint(req.body);
 
     if (!refreshToken) {
       res.status(400).json({
@@ -71,7 +106,7 @@ authRouter.post('/auth/refresh', async (req, res, next) => {
 
     try {
       const claims = verifyRefreshToken(refreshToken);
-      const user = await findUserById(claims.sub);
+      const user = await findUserById(claims.sub, tenantHint);
       if (!user) {
         res.status(401).json({
           error: 'invalid_refresh',
@@ -80,14 +115,7 @@ authRouter.post('/auth/refresh', async (req, res, next) => {
         return;
       }
 
-      const tokens = issueTokenPair({
-        sub: user.userId,
-        email: user.email,
-        tenantId: user.tenantId,
-        tenantSlug: user.tenantSlug,
-      });
-
-      res.json(tokens);
+      res.json(issueAuthTokens(user));
     } catch {
       res.status(401).json({
         error: 'invalid_refresh',

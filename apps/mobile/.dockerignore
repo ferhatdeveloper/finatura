@@ -1,0 +1,17 @@
+.dart_tool
+.idea
+build
+android
+ios
+test
+.git
+.gitignore
+*.iml
+*.md
+.DS_Store
+*.log
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache
+.pub

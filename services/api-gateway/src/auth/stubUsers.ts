@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import type { AuthUserRecord } from './userRepository.js';
+import type { AuthUserRecord, LoginTenantHint } from './userRepository.js';
 import { getUserRepository } from './createUserRepository.js';
 
 /**
@@ -13,6 +13,8 @@ export interface StubUser {
   tenantId: string;
   tenantSlug: string;
   displayName: string;
+  role: string;
+  firmaKodu: string;
 }
 
 export function getStubUser(): StubUser {
@@ -23,6 +25,8 @@ export function getStubUser(): StubUser {
     tenantId: config.authStub.tenantId,
     tenantSlug: config.authStub.tenantSlug,
     displayName: 'Finatura Demo',
+    role: config.authStub.role,
+    firmaKodu: config.authStub.firmaKodu,
   };
 }
 
@@ -54,12 +58,14 @@ export function findStubById(userId: string): StubUser | null {
 export async function authenticateUser(
   email: string,
   password: string,
+  tenantHint?: LoginTenantHint,
 ): Promise<AuthUserRecord | null> {
-  return getUserRepository().authenticate(email, password);
+  return getUserRepository().authenticate(email, password, tenantHint);
 }
 
 export async function findUserById(
   userId: string,
+  tenantHint?: LoginTenantHint,
 ): Promise<AuthUserRecord | null> {
-  return getUserRepository().findById(userId);
+  return getUserRepository().findById(userId, tenantHint);
 }

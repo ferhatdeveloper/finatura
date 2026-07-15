@@ -23,6 +23,8 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        VITE_APP_URL: ${VITE_APP_URL:-https://login.finatura.app}
     image: finatura-web:latest
     restart: unless-stopped
     expose:

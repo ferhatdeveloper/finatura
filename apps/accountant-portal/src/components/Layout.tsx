@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { DONEM } from "../data/mock";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/", label: "Özet", end: true },
@@ -9,6 +11,14 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
 ];
 
 export function Layout() {
+  const { user, session, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function onLogout() {
+    logout();
+    navigate("/giris", { replace: true });
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -29,14 +39,30 @@ export function Layout() {
           ))}
         </nav>
         <div className="sidebar-foot">
-          UI mock · API bağlantısı yok
+          {session?.source === "mock" ? "Auth stub (mock)" : "Auth · API gateway"}
           <br />
-          Dönem: Temmuz 2026
+          Dönem: {DONEM}
         </div>
       </aside>
-      <main className="main">
-        <Outlet />
-      </main>
+      <div className="workspace">
+        <header className="topbar">
+          <div className="topbar-firm">
+            <p className="topbar-unvan">{user?.firmaUnvan ?? "—"}</p>
+            <p className="topbar-meta">
+              {user?.displayName}
+              {user?.maliMusavirKodu || user?.firmaKodu
+                ? ` · ${user.maliMusavirKodu || user.firmaKodu}`
+                : null}
+            </p>
+          </div>
+          <button type="button" className="btn btn-ghost topbar-logout" onClick={onLogout}>
+            Çıkış
+          </button>
+        </header>
+        <main className="main">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

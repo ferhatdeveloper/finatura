@@ -6,5 +6,11 @@ export default defineConfig({
   server: {
     port: 5174,
     open: false,
+    proxy: {
+      "/api/accountant": {
+        target: "http://localhost:4055",
+        changeOrigin: true,
+      },
+    },
   },
 });

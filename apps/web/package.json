@@ -2,7 +2,7 @@
   "name": "@finatura/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Finatura marketing one-page — landing, giriş, kayıt",
+  "description": "Finatura marketing one-page — landing; auth CTAs → Flutter app host",
   "type": "module",
   "scripts": {
     "dev": "vite",
