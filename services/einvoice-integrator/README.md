@@ -2,9 +2,17 @@
 
 **8 entegratör iskeleti:** EDM, Uyumsoft, FIT, Logo eLogo, QNB eSolutions, NES, Nilvera ve İzibiz — ortak arayüz, stub adapter’lar ve **gönder → onayla → PDF indir** akışı.
 
-Tüm sağlayıcılar **live-capable**: `EINVOICE_STUB_MODE=false` + ilgili credential’lar ile inject edilebilir `HttpClient` üzerinden SOAP/REST HTTP iskeleti çalışır. Stub varsayılan olarak açıktır (CI / geliştirme).
+Tüm sağlayıcılar **live-capable**: `EINVOICE_STUB_MODE=false` (production default) + ilgili credential’lar ile inject edilebilir `HttpClient` üzerinden SOAP/REST HTTP iskeleti çalışır. Stub yalnızca açıkça `EINVOICE_STUB_MODE=true` ile açılır (CI / credential yokken).
 
 Bu servis **transformer (Aşama 3.1)** iç mantığına dokunmaz; `@finatura/invoice-transformers` çıktısını `invoiceDraftFromTransformer` ile gönderim taslağına köprüler.
+
+## Production defaults
+
+| Ayar | Değer | Not |
+|---|---|---|
+| `EINVOICE_STUB_MODE` | `false` | Canlı HTTP yolu; kod ve `.env.example` varsayılanı |
+| Provider credential’ları | zorunlu (live) | Eksikte **503 / `missing_credentials`** — mock’a düşülmez |
+| `EINVOICE_STUB_MODE=true` | opsiyonel | Yalnızca yerel / CI; gerçek API yok |
 
 ## Bayilik ve kontör
 
@@ -12,8 +20,8 @@ Finatura müşteriye kontör satacak, entegratörde **bayilik** hesabı tutulaca
 
 1. Sekiz sağlayıcıdan birinden bayilik (veya alt bayi) başvurusu → test/prod WS/OAuth/API Key + endpoint.
 2. `.env` içinde `EINVOICE_PROVIDER` seçilir; ilgili `*_BASE_URL` ve kimlik alanları doldurulur.
-3. Geliştirmede `EINVOICE_STUB_MODE=true` (varsayılan) kalır; canlı deneme için `false` yapılır.
-4. Credential yokken live çağrı **503 / missing_credentials** fırlatır.
+3. Production: `EINVOICE_STUB_MODE=false` + credential’lar. Credential yokken / offline CI için `true` yapın.
+4. Credential yokken live çağrı **503 / missing_credentials** fırlatır (stub’a otomatik düşmez).
 
 ## Mimari
 
@@ -105,7 +113,7 @@ npm test
 |---|---|---|
 | `PORT` | HTTP port | `3200` |
 | `EINVOICE_PROVIDER` | `edm` \| `uyumsoft` \| `fit` \| `elogo` \| `qnb` \| `nes` \| `nilvera` \| `izibiz` | `edm` |
-| `EINVOICE_STUB_MODE` | Stub (gerçek API yok) | `true` |
+| `EINVOICE_STUB_MODE` | Stub (gerçek API yok); production `false` | `false` |
 | `EDM_BASE_URL` / `USERNAME` / `PASSWORD` / `VKN` | EDM live | test örnek URL |
 | `EDM_GB_ALIAS` / `EDM_PK_ALIAS` | Opsiyonel GB/PK | skeleton varsayılan |
 | `UYUMSOFT_*` | Uyumsoft live | test örnek URL |

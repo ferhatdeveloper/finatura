@@ -56,7 +56,11 @@ export const config = {
   port: Number(env('PORT', '3200')) || 3200,
   nodeEnv: env('NODE_ENV', 'development'),
   provider: parseProvider(env('EINVOICE_PROVIDER', 'edm')),
-  stubMode: envBool('EINVOICE_STUB_MODE', true),
+  /**
+   * Production varsayılanı: false (canlı SOAP/REST).
+   * Yerel CI / credential yokken: EINVOICE_STUB_MODE=true.
+   */
+  stubMode: envBool('EINVOICE_STUB_MODE', false),
   defaultSenderVkn: env('DEFAULT_SENDER_VKN'),
   edm: {
     baseUrl: env('EDM_BASE_URL', 'https://test.edmbilisim.com.tr'),

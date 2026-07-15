@@ -2,7 +2,9 @@ import express from 'express';
 import { assertConfig, config } from './config.js';
 import { closeCentralPool } from './db/centralPool.js';
 import { tenantContext } from './middleware/tenantContext.js';
+import { bankTransactionsRouter } from './routes/bankTransactions.js';
 import { healthRouter } from './routes/health.js';
+import { settlementsRouter } from './routes/settlements.js';
 import { tenantPoolCache } from './tenant/poolCache.js';
 import './types.js';
 
@@ -33,6 +35,10 @@ app.get('/api/tenant/ping', tenantContext, async (req, res) => {
     });
   }
 });
+
+/** Banka hareketleri + matching önerileri + mahsup (gateway /v1/tenant/*). */
+app.use('/api/tenant', bankTransactionsRouter);
+app.use('/api/tenant', settlementsRouter);
 
 app.use(
   (

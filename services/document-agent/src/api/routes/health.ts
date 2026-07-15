@@ -9,6 +9,7 @@ healthRouter.get('/health', (_req, res) => {
     service: 'document-agent',
     status: 'ok',
     ocrProvider: config.ocrProvider,
+    tesseractLangs: config.tesseractLangs,
     parsers: listRegisteredParsers(),
   });
 });

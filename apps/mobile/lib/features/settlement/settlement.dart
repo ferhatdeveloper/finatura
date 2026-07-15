@@ -1,7 +1,9 @@
 /// Aşama 4.3 — Tek tıkla / swipe veresiye kapatma (banka mahsup UI).
 library;
 
+export 'config/settlement_api_config.dart';
 export 'data/mock_settlement_data.dart';
+export 'data/settlement_repository.dart';
 export 'models/bank_transaction.dart';
 export 'models/settlement_action.dart';
 export 'models/veresiye_open_debt.dart';

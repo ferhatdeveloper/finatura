@@ -1,9 +1,11 @@
-# Finatura — yerel geliştirme altyapısı
+﻿# Finatura — yerel geliştirme altyapısı
 # Merkez kontrol düzlemi + örnek kiracı (tenant) PostgreSQL
 #
 # Host portları RetailEX (:5432) ve Kargo (:5433) ile çakışMASIN diye
 # Finatura yerel DB: :5440 (merkez) + :5441 (örnek kiracı).
 # Production Dokploy marketing compose PostgreSQL AÇMAZ.
+# Servis env örnekleri: .env.example ve services/*/.env.example
+# CENTRAL_DATABASE_URL=postgresql://finatura:finatura_dev@localhost:5440/finatura_central
 
 services:
   postgres-central:

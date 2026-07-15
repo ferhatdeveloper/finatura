@@ -69,6 +69,7 @@ class _FinaturaAppState extends State<FinaturaApp> {
           builder: (context, _) {
             final user = _auth.session?.user;
             return AppShell(
+              auth: _auth,
               displayName: user?.displayName,
               email: user?.email,
               onLogout: _logout,
@@ -85,6 +86,7 @@ class _FinaturaAppState extends State<FinaturaApp> {
               builder: (context, _) {
                 final user = _auth.session?.user;
                 return AppShell(
+                  auth: _auth,
                   displayName: user?.displayName,
                   email: user?.email,
                   onLogout: _logout,
@@ -93,7 +95,8 @@ class _FinaturaAppState extends State<FinaturaApp> {
             ),
         HomeSummaryScreen.routeName: (_) => const HomeSummaryScreen(),
         DocumentScanScreen.routeName: (_) => const DocumentScanScreen(),
-        SettlementInboxScreen.routeName: (_) => const SettlementInboxScreen(),
+        SettlementInboxScreen.routeName: (_) =>
+            SettlementInboxScreen(auth: _auth),
         EInvoiceStubScreen.routeName: (_) => const EInvoiceStubScreen(),
         AccountScreen.routeName: (_) => AnimatedBuilder(
               animation: _auth,

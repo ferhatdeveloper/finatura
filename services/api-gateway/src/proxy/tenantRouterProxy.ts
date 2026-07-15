@@ -5,7 +5,10 @@ import { config } from '../config.js';
 /**
  * api-gateway → tenant-router proxy.
  *
- * GET /v1/tenant/ping  →  TENANT_ROUTER_URL/api/tenant/ping
+ * GET  /v1/tenant/ping                              → /api/tenant/ping
+ * GET  /v1/tenant/bank-transactions                 → /api/tenant/bank-transactions
+ * GET  /v1/tenant/bank-transactions/:id/match-suggestions
+ * POST /v1/tenant/settlements                       → /api/tenant/settlements
  * (X-Tenant-ID + Authorization iletilir)
  *
  * Genel path: /v1/tenant/* → /api/tenant/*

@@ -2,7 +2,7 @@
 ///
 /// ```bash
 /// flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:3000
-/// flutter run --dart-define=AUTH_USE_MOCK_FALLBACK=true
+/// flutter run --dart-define=AUTH_ALLOW_MOCK=true
 /// ```
 class ApiConfig {
   const ApiConfig._();
@@ -16,12 +16,14 @@ class ApiConfig {
     defaultValue: 'http://localhost:3000',
   );
 
-  /// Gateway’e ulaşılamazsa demo hesap ile yerel mock oturum.
-  static const bool useMockFallback = bool.fromEnvironment(
-    'AUTH_USE_MOCK_FALLBACK',
-    defaultValue: true,
+  /// İsteğe bağlı istemci mock: yalnızca `--dart-define=AUTH_ALLOW_MOCK=true`.
+  /// Varsayılan: kapalı — giriş yalnızca API Gateway üzerinden.
+  static const bool allowMock = bool.fromEnvironment(
+    'AUTH_ALLOW_MOCK',
+    defaultValue: false,
   );
 
+  /// Gateway stub / form ön doldurma (istemci mock değil).
   static const String demoEmail = 'demo@finatura.app';
   static const String demoPassword = 'demo1234';
   static const String demoFirmaKodu = 'DEMO-GALERI';

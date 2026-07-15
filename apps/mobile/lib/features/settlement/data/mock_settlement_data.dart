@@ -1,7 +1,10 @@
 import '../models/bank_transaction.dart';
 import '../models/veresiye_open_debt.dart';
 
-/// Swipe-to-settle iskeleti için örnek banka + veresiye verisi.
+/// Debug-only örnek veri — üretim yolunda kullanılmaz.
+///
+/// Açmak: `--dart-define=SETTLEMENT_ALLOW_MOCK=true`
+/// (bkz. [SettlementApiConfig.allowMock]). API hatasında sessiz doldurma yok.
 class MockSettlementData {
   MockSettlementData._();
 

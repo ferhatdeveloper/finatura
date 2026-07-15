@@ -1,6 +1,6 @@
 # Finatura — Finteo Agent (Aşama 4.1)
 
-Banka hesap hareketlerini periyodik olarak Finteo API’den (veya **mock**) çeken, tenant PostgreSQL `bank_transactions` tablosuna yazan ve sync sonrası **matching-agent** ile öneri skorlayan arka plan worker’ı.
+Banka hesap hareketlerini periyodik olarak Finteo API’den çeken (`FINTEO_CLIENT_MODE=http` varsayılan), tenant PostgreSQL `bank_transactions` tablosuna yazan ve sync sonrası **matching-agent** ile öneri skorlayan arka plan worker’ı. Mock yalnızca açıkça `FINTEO_CLIENT_MODE=mock` ile açılır.
 
 ## Akış
 
@@ -91,12 +91,12 @@ npm start
 
 | Değişken | Açıklama | Varsayılan |
 |---|---|---|
-| `CENTRAL_DATABASE_URL` | Central PostgreSQL bağlantı dizesi | zorunlu |
+| `CENTRAL_DATABASE_URL` | Central PostgreSQL (`docker compose` → `finatura_dev`) | zorunlu |
 | `POLL_INTERVAL_MS` | Poll aralığı | `600000` (10 dk) |
 | `POLL_RUN_ON_START` | Açılışta hemen bir tur | `true` |
-| `FINTEO_CLIENT_MODE` | `mock` veya `http` | `mock` |
-| `FINTEO_API_BASE_URL` | API tabanı | örnek URL |
-| `FINTEO_API_KEY` | API anahtarı (`http` modunda zorunlu) | — |
+| `FINTEO_CLIENT_MODE` | `http` (varsayılan) veya `mock` | `http` |
+| `FINTEO_API_BASE_URL` | API tabanı (`http` zorunlu) | — |
+| `FINTEO_API_KEY` | API anahtarı (`http` zorunlu) | — |
 | `FINTEO_TRANSACTIONS_PATH` | Hesap bazlı path (`{accountRef}`) | `/accounts/{accountRef}/transactions` |
 | `FINTEO_TRANSACTIONS_LIST_PATH` | Hesapsız liste path | `/transactions` |
 | `FINTEO_SINCE_QUERY_PARAM` | since query adı | `since` |

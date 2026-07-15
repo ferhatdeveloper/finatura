@@ -1,5 +1,4 @@
 import type { OcrProvider, OcrRecognizeInput, OcrRecognizeResult } from './types.js';
-import { buildStubPlaceholder } from './stubOcrProvider.js';
 
 const IMAGE_MIME = new Set([
   'image/jpeg',
@@ -24,6 +23,15 @@ function looksLikeImage(input: OcrRecognizeInput): boolean {
   return false;
 }
 
+export class OcrInputError extends Error {
+  readonly code = 'ocr_input_required';
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'OcrInputError';
+  }
+}
+
 type TesseractWorker = {
   recognize: (
     image: Buffer | string,
@@ -32,8 +40,9 @@ type TesseractWorker = {
 };
 
 /**
- * tesseract.js tabanlı OCR. Görüntü buffer yoksa veya desteklenmeyen MIME ise
- * stub placeholder'a düşer (pipeline kırılmaz).
+ * tesseract.js tabanlı OCR.
+ * İstemci `ocrText` yoksa görüntü buffer gerekir — stub placeholder’a düşülmez.
+ * Offline / fixture için açıkça `OCR_PROVIDER=stub` kullanın.
  */
 export class TesseractOcrProvider implements OcrProvider {
   readonly name = 'tesseract' as const;
@@ -56,11 +65,11 @@ export class TesseractOcrProvider implements OcrProvider {
     }
 
     if (!input.buffer || input.buffer.byteLength === 0 || !looksLikeImage(input)) {
-      return {
-        text: buildStubPlaceholder(input),
-        provider: this.name,
-        stubbed: true,
-      };
+      throw new OcrInputError(
+        'OCR için görüntü buffer (image/*) veya ocrText gerekli. ' +
+          'Stub placeholder kapalı; yerel fixture için OCR_PROVIDER=stub veya ' +
+          'POST /analyze-text ile gerçek OCR metni gönderin.',
+      );
     }
 
     try {
@@ -70,12 +79,9 @@ export class TesseractOcrProvider implements OcrProvider {
       } = await worker.recognize(input.buffer);
       const trimmed = text.trim();
       if (!trimmed) {
-        return {
-          text: buildStubPlaceholder(input),
-          provider: this.name,
-          stubbed: true,
-          confidence: 0,
-        };
+        throw new OcrInputError(
+          'Tesseract metin üretemedi (boş OCR). Görüntü kalitesini kontrol edin.',
+        );
       }
       return {
         text: trimmed,
@@ -83,12 +89,10 @@ export class TesseractOcrProvider implements OcrProvider {
         stubbed: false,
         confidence: Math.max(0, Math.min(1, confidence / 100)),
       };
-    } catch {
-      return {
-        text: buildStubPlaceholder(input),
-        provider: this.name,
-        stubbed: true,
-      };
+    } catch (err) {
+      if (err instanceof OcrInputError) throw err;
+      const message = err instanceof Error ? err.message : String(err);
+      throw new OcrInputError(`Tesseract OCR başarısız: ${message}`);
     }
   }
 

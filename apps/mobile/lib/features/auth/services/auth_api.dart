@@ -7,16 +7,19 @@ import '../models/auth_session.dart';
 import '../models/auth_user.dart';
 
 /// Gateway `POST /auth/login` istemcisi.
+///
+/// Varsayılan: yalnızca gerçek API. İstemci mock yalnızca
+/// `--dart-define=AUTH_ALLOW_MOCK=true` ile açılır.
 class AuthApi {
   AuthApi({
     http.Client? client,
     this.baseUrl = ApiConfig.baseUrl,
-    this.useMockFallback = ApiConfig.useMockFallback,
+    this.allowMock = ApiConfig.allowMock,
   }) : _client = client ?? http.Client();
 
   final http.Client _client;
   final String baseUrl;
-  final bool useMockFallback;
+  final bool allowMock;
 
   String get _loginUrl => '$baseUrl/auth/login';
 
@@ -43,7 +46,7 @@ class AuthApi {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = jsonDecode(response.body);
         if (decoded is! Map<String, dynamic>) {
-          throw AuthException('Geçersiz sunucu yanıtı');
+          throw const AuthException('Geçersiz sunucu yanıtı');
         }
         return AuthSession.fromJson(decoded);
       }
@@ -52,14 +55,12 @@ class AuthApi {
       throw AuthException(message, statusCode: response.statusCode);
     } on AuthException {
       rethrow;
-    } catch (e) {
-      if (useMockFallback && _isDemoCredentials(email, password, firmaKodu)) {
+    } catch (_) {
+      if (allowMock && _isDemoCredentials(email, password, firmaKodu)) {
         return _demoSession();
       }
-      throw AuthException(
-        'Gateway’e ulaşılamadı. Demo için: '
-        '${ApiConfig.demoEmail} / ${ApiConfig.demoPassword} / '
-        '${ApiConfig.demoFirmaKodu}\n($e)',
+      throw const AuthException(
+        'Sunucuya bağlanılamadı. Ağ bağlantınızı ve API adresini kontrol edin.',
       );
     }
   }

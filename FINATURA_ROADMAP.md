@@ -22,6 +22,8 @@ Ayrıntı: [`docs/MIMARI_ISTEMCI.md`](docs/MIMARI_ISTEMCI.md).
 
 Repo’da **şema + servis/paket iskeletleri** geniş yüzeyde duruyor; **production (canlı OCR, gerçek Finteo/entegratör/ödeme, gerçek kamera, tenant DB provisioning)** henüz yok. `database/` SQL şemaları (1.1 / 1.3) teslim edilmiş. Hemen her backend ajanı (`tenant-router`, `document-agent`, `forms-agent`, `einvoice-integrator`, `finteo-agent`, `matching-agent`, `luca-agent`, `billing-agent`, `api-gateway`) ve istemci UI (`apps/mobile` scan/settlement, `apps/accountant-portal`) **çalışır stub/mock veya offline kütüphane** düzeyinde — işaretler `[x] (iskelet)` ile dürüst tutuldu. Entegre SaaS pipeline (gateway → router → ajan → kontör → Luca) uçtan uca bağlı değil.
 
+**Varsayılan path notu (2026-07-15):** İstemci mock kapalı (`SCAN_USE_MOCK_FALLBACK=false`). Backend varsayılanları gerçek yolu sever: `FINTEO_CLIENT_MODE=http`, `EINVOICE_STUB_MODE=false`, `OCR_PROVIDER=tesseract`. Stub/mock yalnızca env ile açılır; server stub ise credential yokken / açıkça `*_STUB_MODE` veya `*_CLIENT_MODE=mock` / `OCR_PROVIDER=stub` iken — http/live başarısız olunca mock’a düşülmez.
+
 ---
 
 ## Proje Tanımı & Mali Müşavir Vizyonu

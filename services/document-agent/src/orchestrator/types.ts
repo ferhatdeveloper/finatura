@@ -6,7 +6,7 @@
 export type DocumentType = 'noter' | 'tapu' | 'kimlik' | 'unknown';
 
 export interface DocumentInput {
-  /** Yüklenen dosya tamponu (opsiyonel; OCR stub aşamasında) */
+  /** Yüklenen dosya tamponu (tesseract için görüntü) */
   buffer?: Buffer;
   /** Dosya adı / MIME ipucu */
   filename?: string;

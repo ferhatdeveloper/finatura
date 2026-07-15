@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:finatura_mobile/features/auth/services/auth_controller.dart';
 import 'package:finatura_mobile/features/scan/scan.dart';
 import 'package:finatura_mobile/features/settlement/settlement.dart';
 
@@ -10,6 +11,7 @@ import 'home_summary_screen.dart';
 class AppShell extends StatefulWidget {
   const AppShell({
     super.key,
+    this.auth,
     this.displayName,
     this.email,
     this.onLogout,
@@ -21,6 +23,7 @@ class AppShell extends StatefulWidget {
   /// NavRail eşiği (logical px).
   static const double wideBreakpoint = 840;
 
+  final AuthController? auth;
   final String? displayName;
   final String? email;
   final VoidCallback? onLogout;
@@ -80,7 +83,7 @@ class _AppShellState extends State<AppShell> {
     final pages = <Widget>[
       const HomeSummaryScreen(),
       const DocumentScanScreen(),
-      const SettlementInboxScreen(),
+      SettlementInboxScreen(auth: widget.auth),
       const EInvoiceStubScreen(),
       AccountScreen(
         displayName: widget.displayName,

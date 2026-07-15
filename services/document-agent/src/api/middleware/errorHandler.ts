@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { OcrInputError } from '../../orchestrator/ocr/tesseractOcrProvider.js';
 
 export class HttpError extends Error {
   constructor(
@@ -19,6 +20,11 @@ export function errorHandler(
 ): void {
   if (err instanceof HttpError) {
     res.status(err.status).json({ error: err.code, message: err.message });
+    return;
+  }
+
+  if (err instanceof OcrInputError) {
+    res.status(422).json({ error: err.code, message: err.message });
     return;
   }
 

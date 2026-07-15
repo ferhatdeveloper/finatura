@@ -8,15 +8,20 @@ import {
 } from './index.js';
 
 describe('parseOcrProviderName', () => {
-  it('varsayılan stub döner', () => {
-    expect(parseOcrProviderName(undefined)).toBe('stub');
-    expect(parseOcrProviderName('')).toBe('stub');
-    expect(parseOcrProviderName('unknown')).toBe('stub');
+  it('varsayılan tesseract döner', () => {
+    expect(parseOcrProviderName(undefined)).toBe('tesseract');
+    expect(parseOcrProviderName('')).toBe('tesseract');
+    expect(parseOcrProviderName('unknown')).toBe('tesseract');
   });
 
   it('tesseract kabul eder', () => {
     expect(parseOcrProviderName('tesseract')).toBe('tesseract');
     expect(parseOcrProviderName('Tesseract')).toBe('tesseract');
+  });
+
+  it('stub yalnızca açık OCR_PROVIDER=stub iken', () => {
+    expect(parseOcrProviderName('stub')).toBe('stub');
+    expect(parseOcrProviderName('Stub')).toBe('stub');
   });
 });
 
@@ -68,14 +73,13 @@ describe('TesseractOcrProvider', () => {
     expect(result.provider).toBe('tesseract');
   });
 
-  it('görüntü yoksa stub placeholder’a düşer', async () => {
+  it('görüntü yoksa stub placeholder’a düşmez — hata fırlatır', async () => {
     const provider = new TesseractOcrProvider();
-    const result = await provider.recognize({
-      filename: 'note.txt',
-      mimeType: 'text/plain',
-    });
-    expect(result.stubbed).toBe(true);
-    expect(result.text).toContain('[OCR_STUB]');
-    expect(result.provider).toBe('tesseract');
+    await expect(
+      provider.recognize({
+        filename: 'note.txt',
+        mimeType: 'text/plain',
+      }),
+    ).rejects.toMatchObject({ code: 'ocr_input_required' });
   });
 });

@@ -74,17 +74,31 @@ documentsRouter.post('/analyze', upload.single('file'), async (req, res, next) =
   }
 });
 
-/** Sadece metin ile hızlı deneme (multipart yok) */
+/**
+ * Sadece gerçek OCR metni ile analiz (multipart yok).
+ * Sunucu tarafında fixture / mock metin enjekte edilmez.
+ */
 documentsRouter.post('/analyze-text', async (req, res, next) => {
   try {
     const { ocrText, text, documentType, documentTypeHint, filename } = req.body ?? {};
     const content = typeof ocrText === 'string' ? ocrText : typeof text === 'string' ? text : null;
-    if (!content) {
-      throw new HttpError(400, 'missing_ocr_text', 'ocrText (veya text) zorunlu');
+    if (!content || !content.trim()) {
+      throw new HttpError(
+        400,
+        'missing_ocr_text',
+        'ocrText (veya text) zorunlu — analyze-text mock fixture üretmez',
+      );
+    }
+    if (content.includes('[OCR_STUB]')) {
+      throw new HttpError(
+        422,
+        'stub_ocr_rejected',
+        'OCR stub placeholder kabul edilmez; gerçek OCR metni veya görüntü gönderin',
+      );
     }
 
     const result = await runDocumentPipeline({
-      ocrText: content,
+      ocrText: content.trim(),
       filename: typeof filename === 'string' ? filename : undefined,
       documentTypeHint: parseHint(documentType ?? documentTypeHint),
     });

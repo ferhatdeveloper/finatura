@@ -10,16 +10,20 @@ export function createOcrProvider(
   options?: { tesseractLangs?: string },
 ): OcrProvider {
   switch (name) {
-    case 'tesseract':
-      return new TesseractOcrProvider({ langs: options?.tesseractLangs });
     case 'stub':
-    default:
       return new StubOcrProvider();
+    case 'tesseract':
+    default:
+      return new TesseractOcrProvider({ langs: options?.tesseractLangs });
   }
 }
 
+/**
+ * Varsayılan: tesseract (gerçek OCR).
+ * Stub yalnızca açıkça OCR_PROVIDER=stub iken.
+ */
 export function parseOcrProviderName(raw: string | undefined): OcrProviderName {
-  const value = (raw ?? 'stub').trim().toLowerCase();
-  if (value === 'tesseract') return 'tesseract';
-  return 'stub';
+  const value = (raw ?? '').trim().toLowerCase();
+  if (value === 'stub') return 'stub';
+  return 'tesseract';
 }

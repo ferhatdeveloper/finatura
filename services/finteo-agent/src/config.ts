@@ -36,9 +36,10 @@ export const config = {
   pollIntervalMs: intEnv('POLL_INTERVAL_MS', 600_000),
   pollRunOnStart: boolEnv('POLL_RUN_ON_START', true),
   finteo: {
-    apiBaseUrl: process.env.FINTEO_API_BASE_URL ?? 'https://api.finteo.example/v1',
+    apiBaseUrl: process.env.FINTEO_API_BASE_URL ?? '',
     apiKey: process.env.FINTEO_API_KEY ?? '',
-    clientMode: (process.env.FINTEO_CLIENT_MODE ?? 'mock') as FinteoClientMode,
+    /** Production varsayılanı: http. Mock yalnızca FINTEO_CLIENT_MODE=mock. */
+    clientMode: (process.env.FINTEO_CLIENT_MODE ?? 'http') as FinteoClientMode,
     /** Hesap bazlı hareket path şablonu — {accountRef} yer tutuculu. */
     transactionsPath:
       process.env.FINTEO_TRANSACTIONS_PATH ?? '/accounts/{accountRef}/transactions',
@@ -84,8 +85,17 @@ export function assertConfig(): void {
   if (config.finteo.clientMode !== 'mock' && config.finteo.clientMode !== 'http') {
     throw new Error('FINTEO_CLIENT_MODE yalnızca "mock" veya "http" olabilir');
   }
-  if (config.finteo.clientMode === 'http' && !config.finteo.apiKey) {
-    throw new Error('FINTEO_CLIENT_MODE=http iken FINTEO_API_KEY zorunlu');
+  if (config.finteo.clientMode === 'http') {
+    const missing: string[] = [];
+    if (!config.finteo.apiKey.trim()) missing.push('FINTEO_API_KEY');
+    if (!config.finteo.apiBaseUrl.trim()) missing.push('FINTEO_API_BASE_URL');
+    if (missing.length > 0) {
+      throw new Error(
+        `FINTEO_CLIENT_MODE=http iken zorunlu: ${missing.join(', ')}. ` +
+          `Mock istemiyorsanız credential doldurun; geçici mock için FINTEO_CLIENT_MODE=mock ayarlayın ` +
+          `(http başarısız olunca mock’a düşülmez).`,
+      );
+    }
   }
   const mm = config.matching.mode;
   if (mm !== 'off' && mm !== 'inprocess' && mm !== 'http') {

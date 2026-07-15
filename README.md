@@ -158,6 +158,8 @@ docker compose up -d
 | `postgres-central` | `finatura_central` | `5440` | `finatura` / `finatura_dev` |
 | `postgres-tenant-ornek` | `tenant_ornek` | `5441` | `finatura_tenant` / `finatura_tenant_dev` |
 
+Örnek URL: `postgresql://finatura:finatura_dev@localhost:5432/finatura_central` — kök [`.env.example`](./.env.example) ve `services/*/.env.example`. Backend production defaults: Finteo `http`, e-fatura stub `false`, OCR `tesseract` (stub/mock yalnızca env ile).
+
 İlk açılışta Compose, `database/central/` ve `database/tenant_template/` altındaki `.sql` dosyalarını ilgili konteynere init olarak uygular.
 
 Durdurmak: `docker compose down` · veriyi silmek: `docker compose down -v`.

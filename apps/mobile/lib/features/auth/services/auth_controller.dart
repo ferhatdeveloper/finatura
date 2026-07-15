@@ -57,8 +57,8 @@ class AuthController extends ChangeNotifier {
       _busy = false;
       notifyListeners();
       return false;
-    } catch (e) {
-      _error = e.toString();
+    } catch (_) {
+      _error = 'Giriş sırasında beklenmeyen bir hata oluştu.';
       _busy = false;
       notifyListeners();
       return false;
