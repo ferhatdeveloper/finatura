@@ -1,0 +1,16 @@
+# Finatura marketing site — Dokploy / yerel Docker Compose
+# Kullanım: docker compose -f docker-compose.web.yml up -d --build
+#
+# Dokploy: Application → Docker Compose → bu dosya
+# veya Dockerfile deploy: path apps/web/Dockerfile, port 80
+
+services:
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    image: finatura-web:latest
+    container_name: finatura-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"

@@ -23,20 +23,21 @@ Yol haritası ve aşamalar için bkz. [`FINATURA_ROADMAP.md`](./FINATURA_ROADMAP
 ```
 Finatura/
 ├── apps/
-│   ├── web/              # Marketing one-page (Vite) — Vercel
+│   ├── web/              # Marketing one-page (Vite) — Dokploy / Docker
 │   ├── mobile/           # Flutter istemci
 │   └── accountant-portal/# Mali müşavir portalı (UI mock)
 ├── services/             # Backend servisler (router, ajanlar, API’ler)
 ├── database/             # Merkez + kiracı şablon SQL şemaları
 ├── packages/             # Paylaşılan kütüphaneler / ortak sözleşmeler
 ├── docker-compose.yml    # Yerel PostgreSQL (merkez + örnek kiracı)
+├── docker-compose.web.yml# Marketing site (nginx) — Dokploy / yerel
 ├── FINATURA_ROADMAP.md   # Ürün yol haritası
 └── README.md             # Bu dosya
 ```
 
 | Klasör | Amaç |
 |--------|------|
-| `apps/web` | Tanıtım sitesi (landing + Giriş/Kayıt) — Vercel deploy |
+| `apps/web` | Tanıtım sitesi (landing + Giriş/Kayıt) — Dokploy deploy |
 | `apps/` | Kullanıcıya dönük uygulamalar (mobil / web istemcileri) |
 | `services/` | Dinamik DB router, Document / Finteo (+ matching köprüsü) / Matching / Luca ajanları |
 | `database/` | `central/` şeması ve `tenant_template/` kopyalanabilir şablon |
@@ -52,14 +53,25 @@ npm run dev
 
 Açılır: `http://localhost:5173` — rotalar `/`, `/login`, `/register`.
 
-## Vercel deploy
+## Dokploy deploy (marketing web)
 
-1. [Vercel](https://vercel.com) → proje bağla (bu repo).
-2. **Root Directory:** `apps/web`
-3. Build: `npm run build` · Output: `dist` (Vite varsayılanı; `apps/web/vercel.json` SPA rewrite içerir)
-4. Deploy — özel env gerekmez (statik marketing).
+**Vercel kullanılmıyor.** Production hedefi [Dokploy](https://dokploy.com).
 
-## Yerel geliştirme (Docker)
+1. Dokploy → GitHub bağla (`ferhatdeveloper/finatura`).
+2. **Application** oluştur → **Dockerfile** (veya Compose: `docker-compose.web.yml`).
+3. **Dockerfile path:** `apps/web/Dockerfile` · **Context:** `apps/web`.
+4. **Port:** `80` → domain bağla → deploy.
+
+Yerel doğrulama:
+
+```bash
+docker compose -f docker-compose.web.yml up -d --build
+# http://localhost:8080
+```
+
+Ayrıntı: [`apps/web/README.md`](./apps/web/README.md).
+
+## Yerel geliştirme (Docker — PostgreSQL)
 
 Önkoşul: [Docker Desktop](https://www.docker.com/products/docker-desktop/) veya Docker Engine + Compose v2.
 
