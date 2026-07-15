@@ -191,11 +191,14 @@ Kullanım bazlı gelir modelinin sisteme kurulması.
 
 ## AŞAMA D — Dokploy Deploy Checklist
 
-Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps/mobile/Dockerfile`, `docker-compose.web.yml`, `docker-compose.app.yml`, kök/`apps/*/README`, [`docs/MIMARI_ISTEMCI.md`](docs/MIMARI_ISTEMCI.md).
+Production hedefi **Dokploy** (Vercel yok). Panel: http://berqenas.cloud:3000.
+
+**Yapılacaklar odaklı güncel yol haritası:** [`docs/DOKPLOY_GIT_ROADMAP.md`](docs/DOKPLOY_GIT_ROADMAP.md)  
+Kaynak compose: `docker-compose.dokploy.yml`, `docker-compose.app.yml`, `docker-compose.mm.yml`, `docker-compose.api.yml`.
 
 ### Cursor AI’a talimat
 
-> `FINATURA_ROADMAP.md` içindeki **AŞAMA D — Dokploy Deploy Checklist** maddelerini sırayla uygula. Dokploy MCP varsa Application / domain / env / deploy adımlarını oradan yap; yoksa kullanıcıya Dokploy UI’deki manuel adımları checkbox’larla takip ettir. Force push yapma; `origin main`’e normal push yeterli.
+> Önce `docs/DOKPLOY_GIT_ROADMAP.md` sırasını uygula (DNS → istemci API bağlama → Finatura-only Postgres). Aşağıdaki AŞAMA D checkbox’larını da güncel tut. Force push yapma; `origin main`’e normal push yeterli.
 
 ---
 
@@ -261,7 +264,7 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 
 - [x] `services/api-gateway` için Docker/Compose production tanımı (`docker-compose.api.yml`, stub — Postgres yok)
 - [x] Env: `AUTH_PROVIDER=stub`, `JWT_*`, CORS; central DB sonra
-- [ ] Domain `api.finatura.app` + SSL; health: `/health`, `/ready` *(deploy + DNS)*
+- [x] Domain `api.finatura.app` + SSL (Traefik); health: `/health` 200 — *(public DNS A kaydı eklenmeli)*
 - [ ] Flutter / portal `API_BASE_URL` / `VITE_API_GATEWAY_URL` bu host’a bakıyor
 
 #### D.3.3 — PostgreSQL (compose)
@@ -283,9 +286,9 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 | `VITE_AUTH_MODE` | accountant-portal | `auto` / `mock` / `gateway` |
 | Gateway / DB sırları | api-gateway + Postgres | Dokploy Secrets; repo’ya commit etme |
 
-- [ ] www Application’da `VITE_APP_URL` set
+- [x] www Application’da `VITE_APP_URL` set
 - [ ] app Application’da `API_BASE_URL` (ve gerekiyorsa document-agent URL) set
-- [ ] Opsiyonel servislerde secret’lar Dokploy env/secret store’da
+- [x] Opsiyonel servislerde secret’lar Dokploy env/secret store’da *(api JWT_SECRET)*
 
 ---
 
@@ -294,7 +297,7 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 - [x] `www.finatura.app` (+ isteğe apex) → marketing Application
 - [x] `app.finatura.app` → Flutter Application
 - [x] `login.finatura.app` → aynı Flutter Application
-- [x] (opsiyonel) `mm.finatura.app` deploy edildi; `api.finatura.app` compose hazır
+- [x] (opsiyonel) `mm.finatura.app` + `api.finatura.app` deploy edildi
 - [ ] Tüm host’larda HTTPS yeşil / otomatik yenileme *(DNS A: `app`/`login`/`mm`/`api` → `72.60.182.107`)*
 - [x] GitHub bağlama + `main` push sonrası auto-deploy (tercih)
 - [x] Yanlış Project’e dashboard / frozen app bağlanmadı
@@ -320,7 +323,7 @@ Composer (`Cmd+I` / `Ctrl+I`) ile projeyi şu talimatla başlatın:
 
 > `FINATURA_ROADMAP.md` dosyasındaki **AŞAMA 1 (1.1 ve 1.3)** adımlarını uygulamaya başla. Bana central veritabanı şemasını ve her yeni üye firma için kurulacak izole `tenant_template` SQL şemasını oluştur.
 
-Deploy için: yukarıdaki **AŞAMA D — Dokploy Deploy Checklist** ve **Cursor AI’a talimat** satırını kullanın.
+Deploy için: [`docs/DOKPLOY_GIT_ROADMAP.md`](docs/DOKPLOY_GIT_ROADMAP.md) ve aşağıdaki **AŞAMA D** checkbox’larını kullanın.
 
 ---
 
