@@ -30,11 +30,25 @@ function navMarkup({ auth = false } = {}) {
     <header class="site-nav${auth ? " auth-nav" : ""}" id="site-nav">
       <a class="nav-logo" href="/" data-link>Finatura<span>.</span></a>
       <div class="nav-actions">
+        ${
+          auth
+            ? ""
+            : `<a class="nav-anchor" href="#sektorler">Sektörler</a>`
+        }
         <a class="btn btn-ghost" href="/login" data-link>Giriş</a>
         <a class="btn btn-solid" href="/register" data-link>Kayıt Ol</a>
       </div>
     </header>
   `;
+}
+
+function sectorIcon(name) {
+  const icons = {
+    galeri: `<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M6 26h28l-3.5-9.5a2 2 0 0 0-1.9-1.3H11.4a2 2 0 0 0-1.9 1.3L6 26Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12.5" cy="26" r="3.2" stroke="currentColor" stroke-width="1.5"/><circle cx="27.5" cy="26" r="3.2" stroke="currentColor" stroke-width="1.5"/><path d="M14 15.2 16.2 10h7.6L26 15.2" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+    kuyum: `<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M20 8.5 24.8 16H15.2L20 8.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 17.5h16l-2.2 12.2a2 2 0 0 1-2 1.6H16.2a2 2 0 0 1-2-1.6L12 17.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M16.5 22.5h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    emlak: `<svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M8 18.5 20 9l12 9.5V31a1.5 1.5 0 0 1-1.5 1.5h-21A1.5 1.5 0 0 1 8 31V18.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M16.5 32.5V22h7v10.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+  };
+  return icons[name] || "";
 }
 
 function heroVisualSvg() {
@@ -155,25 +169,45 @@ function landingPage() {
 
       <section class="section sectors" id="sektorler">
         <div class="section-inner">
-          <p class="section-label reveal">Sektörler</p>
-          <h2 class="section-title reveal">Esnafa özel, karmaşık değil</h2>
+          <p class="section-label reveal">Kimler için</p>
+          <h2 class="section-title reveal">Belge yoğun esnafa göre</h2>
           <p class="section-lead reveal">
-            Genel muhasebe labirentinden uzak; günlük işinize dokunan üç dikey.
+            Önce galeri, kuyumcu ve emlak; aynı OCR–fatura–banka omurgası diğer dikeylere de açılıyor.
           </p>
-          <ul class="sector-list">
+
+          <ul class="sector-primary">
             <li class="reveal">
+              <span class="sector-icon">${sectorIcon("galeri")}</span>
               <h3>Oto galeri</h3>
               <p>Noter sözleşmesi, plaka ve araç envanteri — torba dolusu evrak yerine tek tarama.</p>
             </li>
             <li class="reveal">
+              <span class="sector-icon">${sectorIcon("kuyum")}</span>
               <h3>Kuyumculuk</h3>
               <p>Has hesap ve alış–satış belgelerini düzenli tutun; ajanda kaybolmasın.</p>
             </li>
             <li class="reveal">
+              <span class="sector-icon">${sectorIcon("emlak")}</span>
               <h3>Emlak</h3>
               <p>Tapu fotokopileri ve komisyon işlemleri dijital akışta birleşsin.</p>
             </li>
           </ul>
+
+          <div class="sector-expand reveal">
+            <div class="sector-expand-head">
+              <p class="sector-expand-label">Genişleyen dikeyler</p>
+              <p class="sector-expand-note">Aynı omurga, sektör diline göre uyarlanıyor.</p>
+            </div>
+            <ul class="sector-expand-list">
+              <li><span class="sector-expand-name">Araç kiralama</span><span class="sector-expand-hint">Sözleşme &amp; hasar</span></li>
+              <li><span class="sector-expand-name">Oto servis / yedek</span><span class="sector-expand-hint">İş emri &amp; parça</span></li>
+              <li><span class="sector-expand-name">Mobilya</span><span class="sector-expand-hint">Sipariş &amp; sevkiyat</span></li>
+              <li><span class="sector-expand-name">Teknik servis</span><span class="sector-expand-hint">Servis fişi</span></li>
+              <li><span class="sector-expand-name">Tekstil toptan</span><span class="sector-expand-hint">İrsaliye &amp; cari</span></li>
+              <li><span class="sector-expand-name">İnşaat malzemesi</span><span class="sector-expand-hint">Sevk &amp; fatura</span></li>
+              <li><span class="sector-expand-name">Perakende</span><span class="sector-expand-hint">Günlük kasa</span></li>
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -339,6 +373,12 @@ function render() {
   setupReveals();
   setupNavScroll();
   setupAuthForm();
+
+  if (path === "/" && window.location.hash) {
+    requestAnimationFrame(() => {
+      document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth" });
+    });
+  }
 }
 
 window.addEventListener("popstate", render);
