@@ -1,0 +1,20 @@
+# Finatura Flutter Web app — Dokploy / yerel Docker Compose
+# Kullanım: docker compose -f docker-compose.app.yml up -d --build
+#
+# Dokploy: Application → Docker Compose → bu dosya
+# veya Dockerfile deploy: path apps/mobile/Dockerfile, context apps/mobile, port 80
+#
+# Aynı image iki host’a bağlanır:
+#   - app.finatura.app
+#   - login.finatura.app
+
+services:
+  app:
+    build:
+      context: ./apps/mobile
+      dockerfile: Dockerfile
+    image: finatura-app:latest
+    container_name: finatura-app
+    restart: unless-stopped
+    ports:
+      - "8081:80"
