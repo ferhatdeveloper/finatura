@@ -126,6 +126,23 @@ Yerel: `docker compose -f docker-compose.app.yml -f docker-compose.app.local.yml
 
 Yerel: `docker compose -f docker-compose.mm.yml -f docker-compose.mm.local.yml up -d --build` → `http://localhost:8082`
 
+### API Gateway (`api`)
+
+1. Docker Compose · Compose Path: `./docker-compose.api.yml`
+2. Domains → servis `finatura_api` · port **3000** · `api.finatura.app`
+3. Varsayılan `AUTH_PROVIDER=stub` (Postgres yok — RetailEX/Kargo DB’ye dokunmaz)
+
+Yerel: `docker compose -f docker-compose.api.yml -f docker-compose.api.local.yml up -d --build` → `http://localhost:3005`
+
+### DNS (zorunlu alt alanlar)
+
+Registrar’da (nameserver: dns-parking) şu A kayıtlarını `72.60.182.107` yapın:
+
+| Host | Durum |
+|------|--------|
+| `finatura.app` / `www` | ✅ |
+| `app` / `login` / `mm` / `api` | ⚠ Traefik hazır; public DNS A eklenmeli |
+
 Ayrıntı: [`apps/mobile/README.md`](./apps/mobile/README.md) · [`apps/web/README.md`](./apps/web/README.md) · [`apps/accountant-portal/README.md`](./apps/accountant-portal/README.md).
 
 ## Yerel geliştirme (Docker — PostgreSQL)
