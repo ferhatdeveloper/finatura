@@ -26,13 +26,13 @@ npm run preview
 
 ## Docker (yerel)
 
-Repo kökünden:
+Repo kökünden (host port 8080):
 
 ```bash
-docker compose -f docker-compose.web.yml up -d --build
+docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
 ```
 
-Site: [http://localhost:8080](http://localhost:8080)
+Site: [http://localhost:8080](http://localhost:8080) · sağlık: [http://localhost:8080/health](http://localhost:8080/health)
 
 Veya doğrudan:
 
@@ -44,10 +44,17 @@ docker run --rm -p 8080:80 finatura-web
 
 ## Dokploy deploy
 
-1. Dokploy’da GitHub reposunu bağla: `ferhatdeveloper/finatura`
-2. **Application** oluştur → deploy yöntemi **Dockerfile** (veya Docker Compose: `docker-compose.web.yml`)
-3. **Dockerfile path:** `apps/web/Dockerfile` · **Docker context:** `apps/web`
-4. **Port:** `80`
-5. Domain ekle (ör. `finatura.app`) ve deploy et
+Önerilen yöntem: **Application → Dockerfile** (tek servis, basit).
 
-SPA routing nginx ile sağlanır (`try_files $uri /index.html`). Özel env gerekmez (statik marketing).
+1. Dokploy’da GitHub reposunu bağla: `ferhatdeveloper/finatura`
+2. **Application** oluştur → build type **Dockerfile**
+3. Ayarlar:
+   - **Dockerfile path:** `apps/web/Dockerfile`
+   - **Docker context / build path:** `apps/web`
+   - **Port:** `80`
+4. **Domains** → `finatura.app` (veya üretilen domain) · port `80`
+5. Deploy et
+
+Alternatif: **Docker Compose** → Compose path `docker-compose.web.yml` · Domains’de servis `web`, port `80`.
+
+SPA routing nginx ile sağlanır (`try_files $uri /index.html`). Healthcheck: `GET /health` → `200 ok`. Özel env gerekmez (statik marketing).

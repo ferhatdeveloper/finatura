@@ -57,16 +57,23 @@ Açılır: `http://localhost:5173` — rotalar `/`, `/login`, `/register`.
 
 **Vercel kullanılmıyor.** Production hedefi [Dokploy](https://dokploy.com).
 
+### Önerilen: Application → Dockerfile
+
 1. Dokploy → GitHub bağla (`ferhatdeveloper/finatura`).
-2. **Application** oluştur → **Dockerfile** (veya Compose: `docker-compose.web.yml`).
+2. **Application** oluştur → build type **Dockerfile**.
 3. **Dockerfile path:** `apps/web/Dockerfile` · **Context:** `apps/web`.
-4. **Port:** `80` → domain bağla → deploy.
+4. **Port:** `80` · Domains’e `finatura.app` ekle → deploy.
+5. Sağlık kontrolü: `/health` (Dockerfile içinde `HEALTHCHECK` tanımlı).
+
+### Alternatif: Docker Compose
+
+Compose path: `docker-compose.web.yml` · Domains → servis `web`, port `80`.
 
 Yerel doğrulama:
 
 ```bash
-docker compose -f docker-compose.web.yml up -d --build
-# http://localhost:8080
+docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
+# http://localhost:8080  ·  http://localhost:8080/health
 ```
 
 Ayrıntı: [`apps/web/README.md`](./apps/web/README.md).

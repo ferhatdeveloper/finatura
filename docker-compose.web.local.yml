@@ -1,0 +1,7 @@
+# Yerel geliştirme override — host 8080 → konteyner 80
+# Kullanım: docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
+
+services:
+  web:
+    ports:
+      - "8080:80"
