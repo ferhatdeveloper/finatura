@@ -199,10 +199,10 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 
 ### D.0 — Ortak hazırlık (GitHub & sunucu)
 
-- [ ] Dokploy’da GitHub repo bağlandı: `ferhatdeveloper/finatura`
-- [ ] Branch: `main` (auto-deploy isteniyorsa webhook / otomatik deploy açık)
-- [ ] DNS A/AAAA veya CNAME kayıtları Dokploy sunucusuna yönlendirildi
-- [ ] `apps/dashboard` için **yeni Application oluşturulmadı** (frozen/legacy)
+- [x] Dokploy’da GitHub repo bağlandı: `ferhatdeveloper/finatura`
+- [x] Branch: `main` (auto-deploy isteniyorsa webhook / otomatik deploy açık)
+- [ ] DNS A/AAAA veya CNAME kayıtları Dokploy sunucusuna yönlendirildi *(apex/www OK; `app`/`login`/`mm`/`api` DNS eklenmeli → `72.60.182.107`)*
+- [x] `apps/dashboard` için **yeni Application oluşturulmadı** (frozen/legacy)
 
 ---
 
@@ -213,15 +213,15 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 | Dockerfile | `apps/web/Dockerfile` |
 | Context | `apps/web` |
 | Port | `80` |
-| Compose (opsiyonel) | `docker-compose.web.yml` (yerel host `8080:80`) |
-| Domain | `www.finatura.app` (ve/veya apex `finatura.app`) |
+| Compose (production) | `docker-compose.dokploy.yml` (`finatura_web`, `berqenas_net`) |
+| Domain | `www.finatura.app` + apex `finatura.app` |
 
-- [ ] Dokploy Application oluşturuldu (Dockerfile veya Compose)
-- [ ] Path / context / port yukarıdaki tabloya göre ayarlandı
-- [ ] Build arg: `VITE_APP_URL=https://login.finatura.app` (Giriş/Kayıt CTA)
-- [ ] Domain eklendi + **SSL** (Let's Encrypt / Traefik) etkin
-- [ ] Deploy başarılı; `https://www.finatura.app` açılıyor
-- [ ] CTA’lar `login.finatura.app`’e gidiyor (yanlış host yok)
+- [x] Dokploy Application oluşturuldu (Dockerfile veya Compose)
+- [x] Path / context / port yukarıdaki tabloya göre ayarlandı
+- [x] Build arg: `VITE_APP_URL=https://login.finatura.app` (Giriş/Kayıt CTA)
+- [x] Domain eklendi + **SSL** (Let's Encrypt / Traefik) etkin
+- [x] Deploy başarılı; `https://www.finatura.app` açılıyor
+- [x] CTA’lar `login.finatura.app`’e gidiyor (yanlış host yok)
 
 ---
 
@@ -232,15 +232,15 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 | Dockerfile | `apps/mobile/Dockerfile` |
 | Context | `apps/mobile` |
 | Port | `80` |
-| Compose (opsiyonel) | `docker-compose.app.yml` (yerel host `8081:80`) |
+| Compose (production) | `docker-compose.app.yml` (`finatura_app`, `berqenas_net`) |
 | Domains | **Aynı image’a** `app.finatura.app` **ve** `login.finatura.app` |
 
-- [ ] Dokploy Application oluşturuldu (Dockerfile veya Compose)
-- [ ] Path / context / port yukarıdaki tabloya göre ayarlandı
-- [ ] İki domain aynı Application’a bağlandı + **SSL** her ikisi için
+- [x] Dokploy Application oluşturuldu (Dockerfile veya Compose)
+- [x] Path / context / port yukarıdaki tabloya göre ayarlandı
+- [x] İki domain aynı Application’a bağlandı + **SSL** her ikisi için
 - [ ] Build’de API adresi gömülü (gerekirse Dockerfile’a `--dart-define=API_BASE_URL=…` / build-arg ekle; hedef örn. `https://api.finatura.app`)
-- [ ] Deploy başarılı; her iki host’ta Flutter SPA açılıyor
-- [ ] SPA deep-link / refresh nginx `try_files` ile çalışıyor
+- [x] Deploy başarılı; her iki host’ta Flutter SPA açılıyor *(Traefik Host OK; public DNS A kaydı eklenmeli)*
+- [x] SPA deep-link / refresh nginx `try_files` ile çalışıyor
 
 ---
 
@@ -250,22 +250,22 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 
 #### D.3.1 — `mm.finatura.app` (accountant-portal)
 
-- [ ] Dockerfile + nginx (veya Compose) eklendi (`apps/accountant-portal`)
+- [x] Dockerfile + nginx (veya Compose) eklendi (`apps/accountant-portal` / `docker-compose.mm.yml`)
 - [ ] Build env: `VITE_API_GATEWAY_URL=https://api.finatura.app` (veya gateway URL)
-- [ ] Domain `mm.finatura.app` + SSL
-- [ ] Deploy sonrası `/giris` ve panel rotaları kontrol edildi
+- [x] Domain `mm.finatura.app` + SSL *(Traefik; public DNS A kaydı eklenmeli)*
+- [x] Deploy sonrası `/giris` ve panel rotaları kontrol edildi
 
 #### D.3.2 — API Gateway (`api.finatura.app` hedefi)
 
-- [ ] `services/api-gateway` için Docker/Compose production tanımı
-- [ ] Env: `AUTH_PROVIDER`, `JWT_*`, `CENTRAL_DATABASE_URL`, `TENANT_ROUTER_URL`, rate-limit vb. (`.env.example` referans)
-- [ ] Domain `api.finatura.app` + SSL; health: `/health`, `/ready`
+- [x] `services/api-gateway` için Docker/Compose production tanımı (`docker-compose.api.yml`, stub — Postgres yok)
+- [x] Env: `AUTH_PROVIDER=stub`, `JWT_*`, CORS; central DB sonra
+- [ ] Domain `api.finatura.app` + SSL; health: `/health`, `/ready` *(deploy + DNS)*
 - [ ] Flutter / portal `API_BASE_URL` / `VITE_API_GATEWAY_URL` bu host’a bakıyor
 
 #### D.3.3 — PostgreSQL (compose)
 
-- [ ] Yerel gelişim: kök `docker-compose.yml` (`postgres-central` :5432, `postgres-tenant-ornek` :5433) — **production sırları `finatura_dev` ile bırakılmamalı**
-- [ ] Dokploy’da production Postgres (managed veya Compose volume) + yedekleme planı
+- [x] Yerel gelişim: kök `docker-compose.yml` (`postgres-central` **:5440**, `postgres-tenant-ornek` **:5441**) — RetailEX `:5432` / Kargo `:5433` ile çakışmaz; **production sırları `finatura_dev` ile bırakılmamalı**
+- [ ] Dokploy’da production Postgres (managed veya Compose volume) + yedekleme planı — **RetailEX `saas_postgres` / Kargo volume’larına dokunma**
 - [ ] Central şema init: `database/central/*.sql`; tenant şablon: `database/tenant_template/`
 
 ---
@@ -289,13 +289,13 @@ Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps
 
 ### D.5 — Domain, SSL, GitHub
 
-- [ ] `www.finatura.app` (+ isteğe apex) → marketing Application
-- [ ] `app.finatura.app` → Flutter Application
-- [ ] `login.finatura.app` → aynı Flutter Application
-- [ ] (opsiyonel) `mm.finatura.app`, `api.finatura.app`
-- [ ] Tüm host’larda HTTPS yeşil / otomatik yenileme
-- [ ] GitHub bağlama + `main` push sonrası auto-deploy (tercih)
-- [ ] Yanlış Project’e dashboard / frozen app bağlanmadı
+- [x] `www.finatura.app` (+ isteğe apex) → marketing Application
+- [x] `app.finatura.app` → Flutter Application
+- [x] `login.finatura.app` → aynı Flutter Application
+- [x] (opsiyonel) `mm.finatura.app` deploy edildi; `api.finatura.app` compose hazır
+- [ ] Tüm host’larda HTTPS yeşil / otomatik yenileme *(DNS A: `app`/`login`/`mm`/`api` → `72.60.182.107`)*
+- [x] GitHub bağlama + `main` push sonrası auto-deploy (tercih)
+- [x] Yanlış Project’e dashboard / frozen app bağlanmadı
 
 ---
 

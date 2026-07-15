@@ -1,0 +1,46 @@
+# Finatura API Gateway — Dokploy (RetailEX/Kargo ile çakışmaz)
+#
+#   - Ağ: berqenas_net
+#   - Servis: finatura_api (host port YOK — :3000 yalnızca internal)
+#   - AUTH_PROVIDER=stub → Postgres yok
+#   - Domains → finatura_api · port 3000 · api.finatura.app
+#
+# Yerel: docker compose -f docker-compose.api.yml -f docker-compose.api.local.yml up -d --build
+
+services:
+  finatura_api:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    image: finatura-api:latest
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-stub}
+      JWT_SECRET: ${JWT_SECRET:-finatura-prod-change-me-min-32-chars!!}
+      JWT_ISSUER: ${JWT_ISSUER:-finatura.api-gateway}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-finatura.app}
+      AUTH_STUB_EMAIL: ${AUTH_STUB_EMAIL:-demo@finatura.app}
+      AUTH_STUB_PASSWORD: ${AUTH_STUB_PASSWORD:-demo1234}
+      AUTH_STUB_FIRMA_KODU: ${AUTH_STUB_FIRMA_KODU:-DEMO-GALERI}
+      AUTH_STUB_ROLE: ${AUTH_STUB_ROLE:-owner}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://finatura.app,https://www.finatura.app,https://app.finatura.app,https://login.finatura.app,https://mm.finatura.app}
+      # Stub modunda tenant-router zorunlu değil; ready "degraded" olabilir
+      TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://127.0.0.1:3100}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - berqenas_net
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net
