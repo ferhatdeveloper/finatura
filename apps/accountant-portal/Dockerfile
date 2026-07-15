@@ -13,6 +13,13 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Production API Gateway (override with --build-arg)
+ARG VITE_API_GATEWAY_URL=https://api.finatura.app
+ARG VITE_AUTH_MODE=auto
+ENV VITE_API_GATEWAY_URL=$VITE_API_GATEWAY_URL
+ENV VITE_AUTH_MODE=$VITE_AUTH_MODE
+
 RUN npm run build
 
 FROM nginx:1.27-alpine AS production
