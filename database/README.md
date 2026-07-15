@@ -10,6 +10,10 @@ database/
     01_schema.sql
     02_seed_plans.sql
     03_einvoice_reseller.sql   # bayilik: tenant entegratör seçimi
+    04_einvoice_providers_expand.sql
+    05_auth_accountant.sql         # users + firmaKodu
+    05b_membership_accountant.sql  # membership_role + bağlama
+    06_accountant_approvals.sql    # dönem onayı + Luca export
   tenant_template/         # Her yeni üye firmaya kopyalanan izole DB şablonu
     01_schema.sql
 ```
@@ -23,6 +27,10 @@ createdb finatura_central
 psql -d finatura_central -f database/central/01_schema.sql
 psql -d finatura_central -f database/central/02_seed_plans.sql
 psql -d finatura_central -f database/central/03_einvoice_reseller.sql
+psql -d finatura_central -f database/central/04_einvoice_providers_expand.sql
+psql -d finatura_central -f database/central/05_auth_accountant.sql
+psql -d finatura_central -f database/central/05b_membership_accountant.sql
+psql -d finatura_central -f database/central/06_accountant_approvals.sql
 ```
 
 ### Yeni kiracı DB (şablon)
@@ -43,6 +51,18 @@ kiracıdaki `schema_migrations` kaydı ile hizalanmalıdır.
 
 Satın alınabilir paket kataloğu uygulama katmanındadır:
 `services/billing-agent/src/payment/packages.ts`
+
+## Auth / üyelik / mali müşavir
+
+| Dosya | İçerik |
+|-------|--------|
+| `05_auth_accountant.sql` | `users`, `tenants.mali_musavir_kodu`, `accountant_codes` (login `firmaKodu`) |
+| `05b_membership_accountant.sql` | **`membership_role` tek kaynak**, `mali_musavir_baglantilari` |
+| `06_accountant_approvals.sql` | Dönem onayları / Luca export (ayrı) |
+
+Rol enum: `owner \| admin \| member \| viewer \| accountant`
+
+API (api-gateway): `/v1/tenants/:id/accountant/invite`, `/v1/accountant/link`, `/v1/me/tenants`
 
 ## Güvenlik notu
 

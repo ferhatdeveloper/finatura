@@ -2,7 +2,7 @@
   "name": "@finatura/accountant-portal",
   "version": "0.1.0",
   "private": true,
-  "description": "Finatura Mali Müşavir Portalı — aylık fatura, gider pusulası, banka mutabakat ve toplu onay (UI mock)",
+  "description": "Finatura Mali Müşavir Portalı — giriş/yetki + aylık fatura, gider pusulası, banka mutabakat ve toplu onay",
   "type": "module",
   "scripts": {
     "dev": "vite",

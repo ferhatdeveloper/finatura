@@ -1,8 +1,17 @@
 /**
- * Finatura marketing SPA — landing + login/register placeholders
+ * Finatura marketing SPA — landing; Giriş / Kayıt → Flutter app host
  */
 
 const app = document.getElementById("app");
+
+/** Flutter / app host — override with VITE_APP_URL (prod default: login.finatura.app) */
+const APP_URL = (
+  import.meta.env.VITE_APP_URL ||
+  (import.meta.env.DEV ? "http://localhost:8080" : "https://login.finatura.app")
+).replace(/\/+$/, "");
+
+const LOGIN_HREF = `${APP_URL}/login`;
+const REGISTER_HREF = `${APP_URL}/register`;
 
 function pathOf() {
   const p = window.location.pathname.replace(/\/+$/, "") || "/";
@@ -25,19 +34,15 @@ function bindNavClicks(root) {
   });
 }
 
-function navMarkup({ auth = false } = {}) {
+function navMarkup() {
   return `
-    <header class="site-nav${auth ? " auth-nav" : ""}" id="site-nav">
+    <header class="site-nav" id="site-nav">
       <a class="nav-logo" href="/" data-link>Finatura<span>.</span></a>
       <div class="nav-actions">
-        ${
-          auth
-            ? ""
-            : `<a class="nav-anchor" href="#video">Tanıtım</a>
-        <a class="nav-anchor" href="#sektorler">Sektörler</a>`
-        }
-        <a class="btn btn-ghost" href="/login" data-link>Giriş</a>
-        <a class="btn btn-solid" href="/register" data-link>Kayıt Ol</a>
+        <a class="nav-anchor" href="#video">Tanıtım</a>
+        <a class="nav-anchor" href="#sektorler">Sektörler</a>
+        <a class="btn btn-ghost" href="${LOGIN_HREF}">Giriş</a>
+        <a class="btn btn-solid" href="${REGISTER_HREF}">Kayıt Ol</a>
       </div>
     </header>
   `;
@@ -130,8 +135,8 @@ function landingPage() {
             Galeri, kuyumcu ve emlak esnafı için: belgeyi tara, e-Fatura’yı hazırla, bankayı eşleştir, Luca’ya aktar.
           </p>
           <div class="hero-cta">
-            <a class="btn btn-solid btn-lg" href="/register" data-link>Kayıt Ol</a>
-            <a class="btn btn-ghost btn-lg" href="/login" data-link>Giriş</a>
+            <a class="btn btn-solid btn-lg" href="${REGISTER_HREF}">Kayıt Ol</a>
+            <a class="btn btn-ghost btn-lg" href="${LOGIN_HREF}">Giriş</a>
           </div>
         </div>
       </section>
@@ -256,8 +261,8 @@ function landingPage() {
           <h2>Finatura ile defteri kapatmayı bırakın.</h2>
           <p>Kamerayı çevirin; gerisini platforma bırakın.</p>
           <div class="cta-actions">
-            <a class="btn btn-solid btn-lg" href="/register" data-link>Kayıt Ol</a>
-            <a class="btn btn-ghost btn-lg" href="/login" data-link>Giriş Yap</a>
+            <a class="btn btn-solid btn-lg" href="${REGISTER_HREF}">Kayıt Ol</a>
+            <a class="btn btn-ghost btn-lg" href="${LOGIN_HREF}">Giriş Yap</a>
           </div>
         </div>
       </section>
@@ -266,55 +271,6 @@ function landingPage() {
       <span><strong>Finatura</strong> · finatura.app</span>
       <span>© ${new Date().getFullYear()}</span>
     </footer>
-  `;
-}
-
-function authPage({ mode }) {
-  const isLogin = mode === "login";
-  const title = isLogin ? "Giriş" : "Kayıt Ol";
-  const submit = isLogin ? "Giriş Yap" : "Hesap Oluştur";
-  const alt = isLogin
-    ? `Hesabınız yok mu? <a href="/register" data-link>Kayıt Ol</a>`
-    : `Zaten üye misiniz? <a href="/login" data-link>Giriş</a>`;
-
-  const extraFields = isLogin
-    ? ""
-    : `
-      <div class="field">
-        <label for="name">Ad Soyad / Firma</label>
-        <input id="name" name="name" type="text" autocomplete="organization" placeholder="Örn. Atlas Oto Galeri" required />
-      </div>
-    `;
-
-  return `
-    <div class="noise" aria-hidden="true"></div>
-    ${navMarkup({ auth: true })}
-    <main class="auth-page">
-      <div class="auth-panel">
-        <h1>${title}</h1>
-        <p class="auth-sub">${
-          isLogin
-            ? "Finatura hesabınıza giriş yapın."
-            : "Galeri, kuyumcu veya emlak işletmeniz için hesap açın."
-        }</p>
-        <form class="auth-form" id="auth-form" novalidate>
-          ${extraFields}
-          <div class="field">
-            <label for="email">E-posta</label>
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="siz@firma.com" required />
-          </div>
-          <div class="field">
-            <label for="password">Şifre</label>
-            <input id="password" name="password" type="password" autocomplete="${
-              isLogin ? "current-password" : "new-password"
-            }" placeholder="••••••••" required minlength="6" />
-          </div>
-          <button class="btn btn-solid" type="submit">${submit}</button>
-        </form>
-        <p class="auth-alt">${alt}</p>
-        <p class="auth-note">Şimdilik demo form — gerçek kimlik doğrulama yakında bağlanacak.</p>
-      </div>
-    </main>
   `;
 }
 
@@ -342,7 +298,7 @@ function setupReveals() {
 
 function setupNavScroll() {
   const nav = document.getElementById("site-nav");
-  if (!nav || nav.classList.contains("auth-nav")) return;
+  if (!nav) return;
 
   const onScroll = () => {
     nav.classList.toggle("is-scrolled", window.scrollY > 40);
@@ -351,47 +307,23 @@ function setupNavScroll() {
   window.addEventListener("scroll", onScroll, { passive: true });
 }
 
-function setupAuthForm() {
-  const form = document.getElementById("auth-form");
-  if (!form) return;
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    const prev = btn.textContent;
-    btn.textContent = "Kaydedildi (demo)";
-    btn.disabled = true;
-    setTimeout(() => {
-      btn.textContent = prev;
-      btn.disabled = false;
-      navigate("/");
-    }, 900);
-  });
-}
-
 function render() {
   const path = pathOf();
-  document.title =
-    path === "/login"
-      ? "Giriş · Finatura"
-      : path === "/register"
-        ? "Kayıt Ol · Finatura"
-        : "Finatura — Esnafın mali yükünü sıfırla";
 
-  if (path === "/login") {
-    app.innerHTML = authPage({ mode: "login" });
-  } else if (path === "/register") {
-    app.innerHTML = authPage({ mode: "register" });
-  } else {
-    app.innerHTML = landingPage();
+  // Eski SPA /login|/register bookmark’ları → Flutter app host
+  if (path === "/login" || path === "/register") {
+    window.location.replace(path === "/login" ? LOGIN_HREF : REGISTER_HREF);
+    return;
   }
+
+  document.title = "Finatura — Esnafın mali yükünü sıfırla";
+  app.innerHTML = landingPage();
 
   bindNavClicks(app);
   setupReveals();
   setupNavScroll();
-  setupAuthForm();
 
-  if (path === "/" && window.location.hash) {
+  if (window.location.hash) {
     requestAnimationFrame(() => {
       document.querySelector(window.location.hash)?.scrollIntoView({ behavior: "smooth" });
     });

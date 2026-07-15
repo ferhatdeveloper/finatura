@@ -1,9 +1,11 @@
-/** JWT access token payload (auth stub) */
+/** JWT access token payload */
 export interface AccessTokenClaims {
   sub: string;
   email: string;
   tenantId: string;
   tenantSlug: string;
+  /** owner | admin | member | viewer | accountant */
+  role: string;
   typ: 'access';
 }
 
@@ -19,6 +21,7 @@ export interface AuthUser {
   email: string;
   tenantId: string;
   tenantSlug: string;
+  role: string;
 }
 
 /** Tenant context — gateway seviyesinde; DB pool tenant-router'da kalır */

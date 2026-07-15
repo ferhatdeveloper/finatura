@@ -1,18 +1,45 @@
 # Finatura — Mali Müşavir Portalı
 
-Aşama **5.2** UI iskeleti. Mali müşavirlerin mükellef faturalarını, gider pusulalarını ve banka mutabakatını dönem bazında incelemesi; toplu onay yapması için Vite + React mock arayüzü.
+Aşama **5.2** UI iskeleti + **gerçekçi giriş / yetki akışı**. Mali müşavirlerin mükellef faturalarını, gider pusulalarını ve banka mutabakatını dönem bazında incelemesi; toplu onay yapması için Vite + React arayüzü.
 
-## Özellikler (mock)
+## Özellikler
 
 | Ekran | Rota | Açıklama |
 |--------|------|----------|
+| Giriş | `/giris` | E-posta, şifre, mali müşavir kodu ve/veya firma kodu |
+| Yetkisiz | `/yetkisiz` | Rol `accountant` değilse panel engeli |
 | Özet | `/` | Dönem kartları ve hızlı geçiş |
 | Aylık fatura listesi | `/faturalar` | e-Fatura / e-Arşiv / alış-satış, filtreler |
 | Gider pusulası | `/gider-pusulasi` | Stopaj, net ödeme, durum |
 | Banka mutabakat | `/banka-mutabakat` | Hareket eşleştirme (yerel state) |
 | Toplu onay | `/toplu-onay` | Çoklu seçim ile onay / red |
 
-Tüm veriler `src/data/mock.ts` içindedir; API yok.
+Liste / özet verileri hâlâ `src/data/mock.ts` içindedir. Auth UI akışı tamam; JWT hâlâ stub / mock olabilir.
+
+## Kimlik doğrulama
+
+1. Form `POST {VITE_API_GATEWAY_URL}/auth/login` çağırır (`email`, `password`, `firmaKodu`).
+2. Gateway ayakta değilse veya stub kullanıcı yoksa **mock interceptor** devreye girer (JWT stub + `localStorage`).
+3. Oturumda `role === "accountant"` değilse panel rotaları `/yetkisiz` yönlendirir.
+4. Üst çubukta **firma ünvanı**, mali müşavir adı ve **Çıkış** vardır.
+
+### Demo (mock)
+
+| Alan | Değer |
+|------|--------|
+| E-posta | `mm@finatura.app` |
+| Şifre | `mali1234` |
+| Mali müşavir kodu | `MM-DEMO` |
+| Firma kodu | `ORNEK-GALERI` |
+
+Kodlardan **en az biri** yeterlidir.
+
+### Ortam değişkenleri
+
+| Değişken | Varsayılan | Açıklama |
+|----------|------------|---------|
+| `VITE_API_GATEWAY_URL` | `http://localhost:3000` | api-gateway adresi |
+| `VITE_AUTH_MODE` | `auto` | `auto` (gateway → mock), `mock`, `gateway` |
 
 ## Gereksinimler
 
@@ -47,6 +74,7 @@ apps/accountant-portal/
     ├── main.tsx
     ├── App.tsx
     ├── styles.css
+    ├── auth/          # AuthContext, login API + mock, rota koruması
     ├── data/mock.ts
     ├── components/
     └── pages/
@@ -55,5 +83,6 @@ apps/accountant-portal/
 ## Notlar
 
 - Flutter mobil uygulamaya dokunulmaz; bu paket yalnızca web portal iskeletidir.
-- Gerçek tenant / API bağlandığında mock katmanı servis çağrılarıyla değiştirilecek.
+- Gerçek tenant / belge API bağlandığında mock veri katmanı servis çağrılarıyla değiştirilecek.
+- Gateway stub kullanıcısının rolü `owner` olabilir; portal yalnızca `accountant` kabul eder — demo için mock kimlik bilgilerini kullanın.
 - UI metinleri Türkçedir.

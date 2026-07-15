@@ -1,26 +1,18 @@
 import type { Pool } from 'pg';
 import { getCentralPool } from '../db/centralPool.js';
-import type { AuthUserRecord, UserRepository } from './userRepository.js';
+import type {
+  AuthUserRecord,
+  LoginTenantHint,
+  UserRepository,
+} from './userRepository.js';
 
 /**
- * Central DB kullanıcı + membership repository iskeleti.
+ * Central DB: users + memberships + firma kodu (mali_musavir_kodu / accountant_codes).
  *
- * TODO (central schema — henüz 01_schema.sql'de yok):
- *   CREATE TABLE public.users (
- *     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
- *     email         text NOT NULL UNIQUE,
- *     password_hash text NOT NULL,          -- bcrypt/argon2
- *     display_name  text NOT NULL,
- *     is_active     boolean NOT NULL DEFAULT true,
- *     created_at    timestamptz NOT NULL DEFAULT now(),
- *     updated_at    timestamptz NOT NULL DEFAULT now()
- *   );
- *
- * Mevcut: tenant_memberships(user_id, tenant_id, role, is_active, deleted_at)
- *         tenants(id, slug, status, deleted_at)
- *
- * AUTH_PROVIDER=central iken CENTRAL_DATABASE_URL zorunlu.
- * Parola: seed için `dev:<plaintext>`; üretimde bcrypt.compare TODO.
+ * Şema: database/central/05_auth_accountant.sql
+ * Rol enum/davet: 05b_membership_accountant.sql (ayrı)
+ * AUTH_PROVIDER=central → CENTRAL_DATABASE_URL zorunlu.
+ * Parola: seed `dev:<plaintext>`; üretimde bcrypt.compare TODO.
  */
 export class CentralUserRepository implements UserRepository {
   constructor(private readonly pool: Pool = getCentralPool()) {}
@@ -28,9 +20,12 @@ export class CentralUserRepository implements UserRepository {
   async authenticate(
     email: string,
     password: string,
+    tenantHint?: LoginTenantHint,
   ): Promise<AuthUserRecord | null> {
-    const row = await this.fetchUserWithPrimaryMembership(
+    const row = await this.fetchUserWithMembership(
       email.trim().toLowerCase(),
+      undefined,
+      tenantHint,
     );
     if (!row) return null;
 
@@ -41,16 +36,16 @@ export class CentralUserRepository implements UserRepository {
     return this.toRecord(row);
   }
 
-  async findById(userId: string): Promise<AuthUserRecord | null> {
+  async findById(
+    userId: string,
+    tenantHint?: LoginTenantHint,
+  ): Promise<AuthUserRecord | null> {
     try {
-      const { rows } = await this.pool.query<UserMembershipRow>(
-        `${USER_MEMBERSHIP_SQL}
-         AND u.id = $1
-         ORDER BY ${ROLE_ORDER}
-         LIMIT 1`,
-        [userId],
+      const row = await this.fetchUserWithMembership(
+        undefined,
+        userId,
+        tenantHint,
       );
-      const row = rows[0];
       return row ? this.toRecord(row) : null;
     } catch (err) {
       rethrowMissingUsersTable(err);
@@ -69,23 +64,79 @@ export class CentralUserRepository implements UserRepository {
        WHERE m.user_id = $1
          AND m.is_active = true
          AND m.deleted_at IS NULL
-         AND (t.id::text = $2 OR t.slug = $2)
+         AND (
+           t.id::text = $2
+           OR t.slug = $2
+           OR upper(coalesce(t.mali_musavir_kodu, '')) = upper($2)
+         )
        LIMIT 1`,
       [userId, tenantIdOrSlug],
     );
     return rows.length > 0;
   }
 
-  private async fetchUserWithPrimaryMembership(
-    emailLower: string,
+  private async fetchUserWithMembership(
+    emailLower: string | undefined,
+    userId: string | undefined,
+    tenantHint?: LoginTenantHint,
   ): Promise<UserMembershipRow | null> {
     try {
+      const hasHint = Boolean(
+        tenantHint?.tenantId ||
+          tenantHint?.tenantSlug ||
+          tenantHint?.firmaKodu,
+      );
+
+      const params: unknown[] = [];
+      const where: string[] = ['u.is_active = true', 'u.deleted_at IS NULL'];
+
+      if (emailLower !== undefined) {
+        params.push(emailLower);
+        where.push(`lower(u.email) = $${params.length}`);
+      }
+      if (userId !== undefined) {
+        params.push(userId);
+        where.push(`u.id = $${params.length}`);
+      }
+
+      if (hasHint && tenantHint) {
+        const clauses: string[] = [];
+        if (tenantHint.tenantId) {
+          params.push(tenantHint.tenantId);
+          clauses.push(`t.id::text = $${params.length}`);
+        }
+        if (tenantHint.tenantSlug) {
+          params.push(tenantHint.tenantSlug);
+          clauses.push(`t.slug = $${params.length}`);
+        }
+        if (tenantHint.firmaKodu) {
+          params.push(tenantHint.firmaKodu.trim());
+          const p = `$${params.length}`;
+          clauses.push(`(
+            t.id::text = ${p}
+            OR t.slug = ${p}
+            OR upper(coalesce(t.mali_musavir_kodu, '')) = upper(${p})
+            OR EXISTS (
+              SELECT 1 FROM public.accountant_codes ac
+              WHERE ac.tenant_id = t.id
+                AND ac.is_active = true
+                AND ac.revoked_at IS NULL
+                AND (ac.expires_at IS NULL OR ac.expires_at > now())
+                AND upper(ac.code) = upper(${p})
+            )
+          )`);
+        }
+        if (clauses.length > 0) {
+          where.push(`(${clauses.join(' OR ')})`);
+        }
+      }
+
       const { rows } = await this.pool.query<UserMembershipRow>(
         `${USER_MEMBERSHIP_SQL}
-         AND lower(u.email) = $1
+         WHERE ${where.join(' AND ')}
          ORDER BY ${ROLE_ORDER}
          LIMIT 1`,
-        [emailLower],
+        params,
       );
       return rows[0] ?? null;
     } catch (err) {
@@ -97,7 +148,7 @@ export class CentralUserRepository implements UserRepository {
     return {
       userId: String(row.user_id),
       email: row.email,
-      displayName: row.display_name,
+      displayName: row.full_name,
       tenantId: String(row.tenant_id),
       tenantSlug: row.tenant_slug,
       role: row.role,
@@ -121,8 +172,8 @@ function rethrowMissingUsersTable(err: unknown): never {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg.includes('does not exist') || msg.includes('relation')) {
     throw new Error(
-      '[CentralUserRepository] public.users tablosu bulunamadı. ' +
-        'Central şemaya users ekleyin veya AUTH_PROVIDER=stub kullanın. ' +
+      '[CentralUserRepository] public.users (veya ilgili) tablo eksik. ' +
+        'database/central/05_auth_accountant.sql uygulayın veya AUTH_PROVIDER=stub kullanın. ' +
         `Detay: ${msg}`,
     );
   }
@@ -133,29 +184,31 @@ interface UserMembershipRow {
   user_id: string;
   email: string;
   password_hash: string;
-  display_name: string;
+  full_name: string;
   tenant_id: string;
   tenant_slug: string;
   role: string;
 }
 
-const ROLE_ORDER = `CASE m.role
+const ROLE_ORDER = `CASE m.role::text
   WHEN 'owner' THEN 0
   WHEN 'admin' THEN 1
   WHEN 'member' THEN 2
-  ELSE 3
+  WHEN 'accountant' THEN 3
+  WHEN 'viewer' THEN 4
+  ELSE 5
 END`;
 
 /**
- * Owner > admin > member öncelikli birincil üyelik.
- * users tablosu yoksa sorgu hata verir → açık TODO mesajı.
+ * users ⋈ memberships ⋈ tenants (05_auth_accountant.sql).
+ * Role sıralama: owner > admin > member > accountant > viewer.
  */
 const USER_MEMBERSHIP_SQL = `
 SELECT
   u.id            AS user_id,
   u.email,
   u.password_hash,
-  u.display_name,
+  u.full_name,
   t.id            AS tenant_id,
   t.slug          AS tenant_slug,
   m.role
@@ -167,5 +220,4 @@ INNER JOIN public.tenant_memberships m
 INNER JOIN public.tenants t
   ON t.id = m.tenant_id
  AND t.deleted_at IS NULL
-WHERE u.is_active = true
 `;

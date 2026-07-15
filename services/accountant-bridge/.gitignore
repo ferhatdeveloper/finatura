@@ -1,0 +1,5 @@
+node_modules/
+dist/
+data/approvals.json
+.env
+*.log

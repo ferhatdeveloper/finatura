@@ -3,6 +3,7 @@
 #
 # Dokploy: Application → Docker Compose → bu dosya
 # veya Dockerfile deploy: path apps/web/Dockerfile, port 80
+# Not: apps/dashboard (operasyon paneli) bu compose’a dahil değildir.
 
 services:
   web:

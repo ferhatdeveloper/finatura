@@ -46,7 +46,11 @@ paths:
   /auth/login:
     post:
       tags: [auth]
-      summary: SaaS giriş (stub)
+      summary: SaaS giriş
+      description: |
+        Body: email, password; opsiyonel firmaKodu | tenantSlug | tenantId.
+        JWT claim'leri: tenantId, tenantSlug, role (accountant dahil).
+        Web form sözleşmesi: firmaKodu.
       requestBody:
         required: true
         content:
@@ -57,14 +61,20 @@ paths:
               properties:
                 email: { type: string, format: email }
                 password: { type: string, format: password }
+                firmaKodu:
+                  type: string
+                  description: Firma / mali müşavir davet kodu (tenant resolve)
+                tenantSlug: { type: string }
+                tenantId: { type: string, format: uuid }
             example:
               email: demo@finatura.app
               password: demo1234
+              firmaKodu: DEMO-GALERI
       responses:
         '200':
-          description: Access + refresh JWT
+          description: Access + refresh JWT (role + tenantId dahil)
         '401':
-          description: Geçersiz kimlik bilgileri
+          description: Geçersiz kimlik bilgileri veya firma kodu
 
   /auth/refresh:
     post:

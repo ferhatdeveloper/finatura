@@ -12,6 +12,11 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Flutter app host for Giriş / Kayıt CTAs (build-time; Vite embeds it)
+ARG VITE_APP_URL=https://login.finatura.app
+ENV VITE_APP_URL=$VITE_APP_URL
+
 RUN npm run build
 
 FROM nginx:1.27-alpine AS production

@@ -35,6 +35,7 @@ export function requireAuth(
       email: claims.email,
       tenantId: claims.tenantId,
       tenantSlug: claims.tenantSlug,
+      role: claims.role ?? 'member',
     };
     next();
   } catch {

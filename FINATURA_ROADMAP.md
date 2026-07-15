@@ -6,6 +6,20 @@
 
 ## Durum özeti (2026-07-15)
 
+### İstemci çatısı (karar)
+
+| Yüzey | Durum | Not |
+|-------|--------|-----|
+| **Tek çatı Flutter** (`apps/mobile`) | Aktif hedef | Mobil + web aynı Flutter uygulaması → `app.finatura.app` |
+| **www** (`apps/web`) | Ayrı | Marketing / landing — ürün UI değil |
+| **dashboard** (`apps/dashboard`) | **Frozen** | Yeni özellik yok; Flutter web tek ürün paneli |
+| **MM portal** (`apps/accountant-portal`) | Ayrı | Mali müşavir yüzeyi → `mm.finatura.app` |
+| **Giriş** | Ayrı host | `login.finatura.app` — kimlik / oturum |
+
+Ayrıntı: [`docs/MIMARI_ISTEMCI.md`](docs/MIMARI_ISTEMCI.md).
+
+### Backend / ürün olgunluğu
+
 Repo’da **şema + servis/paket iskeletleri** geniş yüzeyde duruyor; **production (canlı OCR, gerçek Finteo/entegratör/ödeme, gerçek kamera, tenant DB provisioning)** henüz yok. `database/` SQL şemaları (1.1 / 1.3) teslim edilmiş. Hemen her backend ajanı (`tenant-router`, `document-agent`, `forms-agent`, `einvoice-integrator`, `finteo-agent`, `matching-agent`, `luca-agent`, `billing-agent`, `api-gateway`) ve istemci UI (`apps/mobile` scan/settlement, `apps/accountant-portal`) **çalışır stub/mock veya offline kütüphane** düzeyinde — işaretler `[x] (iskelet)` ile dürüst tutuldu. Entegre SaaS pipeline (gateway → router → ajan → kontör → Luca) uçtan uca bağlı değil.
 
 ---

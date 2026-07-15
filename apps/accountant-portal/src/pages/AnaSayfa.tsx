@@ -19,7 +19,7 @@ export function AnaSayfa() {
           <h1>Mükellef defteri özeti</h1>
           <p>
             {DONEM} dönemi — faturalar, gider pusulaları ve banka hareketlerini tek
-            ekrandan izleyin. Bu portal UI mock; gerçek API entegrasyonu sonraki aşamada.
+            ekrandan izleyin. Belge listeleri mock; kimlik doğrulama UI akışı aktiftir.
           </p>
         </div>
       </header>

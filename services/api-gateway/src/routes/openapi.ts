@@ -36,6 +36,13 @@ openApiRouter.get('/openapi.json', (_req, res) => {
       '/auth/login': { post: { summary: 'SaaS giriş (stub)' } },
       '/auth/refresh': { post: { summary: 'Token yenileme (stub)' } },
       '/auth/me': { get: { summary: 'Oturum bilgisi' } },
+      '/v1/me/tenants': { get: { summary: 'Kullanıcı tenant üyelikleri' } },
+      '/v1/tenants/{id}/accountant/invite': {
+        post: { summary: 'Mali müşavir davet kodu' },
+      },
+      '/v1/accountant/link': {
+        post: { summary: 'Davet kodu ile mali müşavir bağlama' },
+      },
       '/v1/ping': { get: { summary: 'Korumalı ping' } },
     },
   });
