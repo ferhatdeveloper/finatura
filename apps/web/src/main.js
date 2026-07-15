@@ -136,27 +136,6 @@ function landingPage() {
         </div>
       </section>
 
-      <section class="section demo-video" id="video">
-        <div class="section-inner">
-          <p class="section-label reveal">Tanıtım</p>
-          <h2 class="section-title reveal">Finatura’yı kısaca izleyin</h2>
-          <p class="section-lead reveal">
-            Belgeyi tarayın, e-Fatura hazırlansın, banka ve Luca aynı akışta.
-          </p>
-          <video
-            class="demo-video-player reveal"
-            controls
-            playsinline
-            muted
-            autoplay
-            preload="metadata"
-            aria-label="Finatura tanıtım videosu"
-          >
-            <source src="/video/FINATURA_TANITIM_VIDEOSU.mp4" type="video/mp4" />
-          </video>
-        </div>
-      </section>
-
       <section class="section how" id="nasil">
         <div class="section-inner">
           <p class="section-label reveal">Nasıl çalışır</p>
@@ -253,6 +232,22 @@ function landingPage() {
           <p class="integ-note reveal">
             Entegrasyonlar aşamalı açılır; hesabınızda aktif kanal, firmanızın tercihine göre bağlanır.
           </p>
+        </div>
+      </section>
+
+      <section class="section demo-video" id="video">
+        <div class="section-inner">
+          <h2 class="section-title reveal">Kısaca Finatura</h2>
+          <video
+            class="demo-video-player reveal"
+            controls
+            playsinline
+            muted
+            preload="metadata"
+            aria-label="Finatura tanıtım videosu"
+          >
+            <source src="/video/FINATURA_TANITIM_VIDEOSU.mp4" type="video/mp4" />
+          </video>
         </div>
       </section>
 
