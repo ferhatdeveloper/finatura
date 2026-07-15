@@ -1,0 +1,30 @@
+# Finatura Mali Müşavir Portalı — Dokploy (RetailEX/Kargo ile çakışmaz)
+#
+#   - Ağ: berqenas_net
+#   - Servis: finatura_mm (host port YOK)
+#   - Domains → finatura_mm · port 80 · mm.finatura.app
+#
+# Yerel: docker compose -f docker-compose.mm.yml -f docker-compose.mm.local.yml up -d --build
+
+services:
+  finatura_mm:
+    build:
+      context: ./apps/accountant-portal
+      dockerfile: Dockerfile
+    image: finatura-mm:latest
+    restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - berqenas_net
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net
