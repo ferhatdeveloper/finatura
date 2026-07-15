@@ -1,8 +1,9 @@
 # Finatura marketing site — Dokploy / yerel Docker Compose
-# Kullanım: docker compose -f docker-compose.web.yml up -d --build
 #
-# Dokploy: Application → Docker Compose → bu dosya
-# veya Dockerfile deploy: path apps/web/Dockerfile, port 80
+# Dokploy production: ./docker-compose.dokploy.yml (berqenas_net, finatura_web)
+# Bu dosya yerel / basit Compose için.
+#
+# Yerel: docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
 # Not: apps/dashboard (operasyon paneli) bu compose’a dahil değildir.
 
 services:
@@ -10,8 +11,16 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
+      args:
+        VITE_APP_URL: ${VITE_APP_URL:-https://login.finatura.app}
     image: finatura-web:latest
-    container_name: finatura-web
     restart: unless-stopped
+    # Konteyner portu 80 — host bağlama yok (Dokploy/Traefik)
     ports:
-      - "8080:80"
+      - "80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

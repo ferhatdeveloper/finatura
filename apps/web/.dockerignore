@@ -11,3 +11,5 @@ dist
 vercel.json
 .vercel
 npm-debug.log*
+Dockerfile
+.dockerignore

@@ -1,0 +1,7 @@
+# Yerel override — host 8081 → konteyner 80 (RetailEX :8080 ile çakışmaz)
+# Kullanım: docker compose -f docker-compose.app.yml -f docker-compose.app.local.yml up -d --build
+
+services:
+  finatura_app:
+    ports:
+      - "8081:80"

@@ -2,7 +2,9 @@
 
 Görsel destekli one-page tanıtım sitesi. Giriş / Kayıt CTA’ları Flutter app host’a gider.
 
-**Deploy hedefi:** [Dokploy](https://dokploy.com) (Docker). Vercel kullanılmıyor.
+**Deploy hedefi:** [Dokploy](https://dokploy.com) · domain **`finatura.app`** (VPS `72.60.182.107`, RetailEX/Kargo ile paylaşılır).
+
+Production compose **PostgreSQL açmaz** — RetailEX `:5432` / Kargo DB ile çakışmaz.
 
 ## www vs app
 
@@ -35,15 +37,13 @@ npm run preview
 
 ## Docker (yerel)
 
-Repo kökünden:
+Repo kökünden (host port 8080 — RetailEX 8080’den farklı makinede kullanın):
 
 ```bash
-docker compose -f docker-compose.web.yml up -d --build
+docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml up -d --build
 ```
 
-Site: [http://localhost:8080](http://localhost:8080)
-
-Veya doğrudan:
+Site: [http://localhost:8080](http://localhost:8080) · sağlık: [http://localhost:8080/health](http://localhost:8080/health)
 
 ```bash
 cd apps/web
@@ -51,15 +51,23 @@ docker build -t finatura-web --build-arg VITE_APP_URL=https://login.finatura.app
 docker run --rm -p 8080:80 finatura-web
 ```
 
-## Dokploy deploy
+## Dokploy (finatura.app)
 
-1. Dokploy’da GitHub reposunu bağla: `ferhatdeveloper/finatura`
-2. **Application** oluştur → deploy yöntemi **Dockerfile** (veya Docker Compose: `docker-compose.web.yml`)
-3. **Dockerfile path:** `apps/web/Dockerfile` · **Docker context:** `apps/web`
-4. **Port:** `80`
-5. Domain ekle (ör. `finatura.app`) ve deploy et
-6. İsteğe bağlı build arg: `VITE_APP_URL=https://login.finatura.app`
+### Önerilen — Compose (çakışmasız)
 
-SPA routing nginx ile sağlanır (`try_files $uri /index.html`).
+1. Panel: `http://berqenas.cloud:3000`
+2. **Docker Compose** · Repo `ferhatdeveloper/finatura`
+3. **Compose Path:** `./docker-compose.dokploy.yml`
+4. **Domains:** servis `finatura_web` · port `80` · host `finatura.app` (+ `www`)
+5. İsteğe bağlı build arg: `VITE_APP_URL=https://login.finatura.app`
+6. Deploy
+
+Ağ: `berqenas_net` (external). Host port yok. Volume yok.
+
+### Alternatif — Dockerfile
+
+- Path: `apps/web/Dockerfile` · Context: `apps/web` · Port: `80` · Domain: `finatura.app`
+
+SPA routing nginx ile (`try_files`). Healthcheck: `GET /health` → `200 ok`.
 
 > Operasyon paneli (`apps/dashboard`) bu Application’a dahil değildir; marketing context yalnızca `apps/web` olmalıdır.
