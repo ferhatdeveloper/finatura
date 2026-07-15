@@ -1,0 +1,13 @@
+{
+  "vknOrTckn": "1234567890",
+  "unvan": "Örnek Oto Galeri Ltd. Şti.",
+  "vergiDairesi": "Çankaya",
+  "adres": "Örnek Mah. Galeri Cad. No:1",
+  "sehir": "Ankara",
+  "ilce": "Çankaya",
+  "postaKodu": "06420",
+  "ulkeKodu": "TR",
+  "telefon": "+90 312 000 00 00",
+  "email": "muhasebe@ornekgaleri.example",
+  "eFaturaMukellefi": true
+}

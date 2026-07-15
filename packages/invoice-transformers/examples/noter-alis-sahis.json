@@ -1,0 +1,31 @@
+{
+  "sozlesmeNo": "2026/67890",
+  "sozlesmeTarihi": "2026-07-10",
+  "noterUnvani": "İstanbul 42. Noterliği",
+  "noterIl": "İstanbul",
+  "satici": {
+    "tcknOrVkn": "98765432109",
+    "unvan": "Mehmet Demir",
+    "adres": "Kadıköy Mah. Moda Cad. No:5 Kadıköy/İstanbul"
+  },
+  "alici": {
+    "tcknOrVkn": "1234567890",
+    "unvan": "Örnek Oto Galeri Ltd. Şti.",
+    "vergiDairesi": "Çankaya",
+    "adres": "Örnek Mah. Galeri Cad. No:1 Çankaya/Ankara"
+  },
+  "arac": {
+    "plaka": "34 XYZ 987",
+    "saseNo": "VF1RJA00061234567",
+    "motorNo": "K9K123456",
+    "marka": "Renault",
+    "model": "Clio",
+    "modelYili": 2018,
+    "renk": "Gri"
+  },
+  "satisBedeli": 520000,
+  "paraBirimi": "TRY",
+  "bedelTipi": "dahil",
+  "guvenSkoru": 0.91,
+  "kaynakBelgeId": "doc_noter_002"
+}

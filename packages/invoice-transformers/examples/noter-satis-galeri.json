@@ -1,0 +1,31 @@
+{
+  "sozlesmeNo": "2026/12345",
+  "sozlesmeTarihi": "2026-07-14",
+  "noterUnvani": "Ankara 15. Noterliği",
+  "noterIl": "Ankara",
+  "satici": {
+    "tcknOrVkn": "1234567890",
+    "unvan": "Örnek Oto Galeri Ltd. Şti.",
+    "vergiDairesi": "Çankaya",
+    "adres": "Örnek Mah. Galeri Cad. No:1 Çankaya/Ankara"
+  },
+  "alici": {
+    "tcknOrVkn": "12345678901",
+    "unvan": "Ayşe Yılmaz",
+    "adres": "Kızılay Mah. Atatürk Bulvarı No:10 Çankaya/Ankara"
+  },
+  "arac": {
+    "plaka": "06 ABC 123",
+    "saseNo": "WVWZZZ1JZYW123456",
+    "motorNo": "CPA123456",
+    "marka": "Volkswagen",
+    "model": "Golf",
+    "modelYili": 2019,
+    "renk": "Beyaz"
+  },
+  "satisBedeli": 850000,
+  "paraBirimi": "TRY",
+  "bedelTipi": "dahil",
+  "guvenSkoru": 0.94,
+  "kaynakBelgeId": "doc_noter_001"
+}

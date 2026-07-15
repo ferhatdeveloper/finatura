@@ -1,0 +1,18 @@
+{
+  "name": "@finatura/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Finatura marketing one-page — landing, giriş, kayıt",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

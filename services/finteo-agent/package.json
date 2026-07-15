@@ -1,0 +1,29 @@
+{
+  "name": "@finatura/finteo-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Finatura Finteo Agent — banka hareketlerini periyodik çekip tenant DB bank_transactions'a yazar",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "sync-once": "tsx src/index.ts --once"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "dependencies": {
+    "@finatura/matching-agent": "file:../matching-agent",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

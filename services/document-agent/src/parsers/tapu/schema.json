@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finatura.app/schemas/tapu-ocr-result.json",
+  "title": "TapuSenediOcrResult",
+  "description": "Tapu Senedi OCR çıktısı — İl/İlçe, Ada, Parsel, Yüzölçümü, Malik (AŞAMA 2.2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fields", "confidence", "overallConfidence", "warnings"],
+  "properties": {
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "city",
+        "district",
+        "neighborhood",
+        "ada",
+        "parsel",
+        "areaSqm",
+        "ownerName",
+        "ownerIdentity",
+        "propertyType",
+        "blockNumber",
+        "independentSection"
+      ],
+      "properties": {
+        "city": {
+          "type": ["string", "null"],
+          "description": "İl"
+        },
+        "district": {
+          "type": ["string", "null"],
+          "description": "İlçe"
+        },
+        "neighborhood": {
+          "type": ["string", "null"],
+          "description": "Mahalle / Köy"
+        },
+        "ada": {
+          "type": ["string", "null"],
+          "description": "Ada no"
+        },
+        "parsel": {
+          "type": ["string", "null"],
+          "description": "Parsel no"
+        },
+        "areaSqm": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Yüzölçümü (m²)"
+        },
+        "ownerName": {
+          "type": ["string", "null"],
+          "description": "Malik adı-soyadı / unvan"
+        },
+        "ownerIdentity": {
+          "type": ["string", "null"],
+          "description": "Malik TCKN (11) veya VKN (10)"
+        },
+        "propertyType": {
+          "type": ["string", "null"],
+          "description": "Nitelik"
+        },
+        "blockNumber": {
+          "type": ["string", "null"],
+          "description": "Blok no"
+        },
+        "independentSection": {
+          "type": ["string", "null"],
+          "description": "Bağımsız bölüm no"
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      }
+    },
+    "overallConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "extractedBy": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["regex", "llm"]
+      }
+    },
+    "rawText": {
+      "type": "string"
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

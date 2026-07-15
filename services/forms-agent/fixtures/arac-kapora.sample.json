@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "documentNo": "AK-2026-00117",
+    "issuedAt": "2026-07-14",
+    "place": "İstanbul / İkitelli",
+    "notes": "Test sürüşü yapılmış; ekspertiz raporu gösterilmiştir."
+  },
+  "letterhead": {
+    "companyName": "Boğaziçi Oto Galeri Ltd. Şti.",
+    "tradeName": "Finatura Demo — Oto Galeri",
+    "address": "İkitelli OSB Mah. Atatürk Bulvarı No:48 Başakşehir / İstanbul",
+    "phone": "+90 212 111 22 33",
+    "taxOffice": "İkitelli",
+    "taxNumber": "9876543210"
+  },
+  "seller": {
+    "fullName": "Can Öztürk",
+    "companyTitle": "Boğaziçi Oto Galeri Ltd. Şti.",
+    "tcknOrVkn": "9876543210",
+    "phone": "+90 532 444 55 66",
+    "address": "İkitelli OSB Mah. Atatürk Bulvarı No:48 Başakşehir / İstanbul"
+  },
+  "buyer": {
+    "fullName": "Zeynep Aydın",
+    "tcknOrVkn": "11223344556",
+    "phone": "+90 535 777 88 99",
+    "address": "Kadıköy / İstanbul"
+  },
+  "vehicle": {
+    "plate": "34 ABC 123",
+    "vin": "WVWZZZ3CZWE123456",
+    "brand": "Volkswagen",
+    "model": "Passat 1.5 TSI",
+    "modelYear": 2022,
+    "color": "Gri metalik",
+    "km": 48500,
+    "fuelType": "Benzin",
+    "gearType": "Otomatik",
+    "engineNo": "DPC123456"
+  },
+  "deposit": {
+    "amountTry": 50000,
+    "currency": "TRY",
+    "paymentMethod": "havale",
+    "bankRef": "TR00 0000 0000 0000 0000 0000 00 · ref: KAPORA-117",
+    "agreedSalePriceTry": 1450000,
+    "holdUntil": "2026-07-21",
+    "refundPolicy": "Alıcının 7 gün içinde noter randevusuna gelmemesi halinde kapora satıcıda kalır; satıcının aracı üçüncü kişiye satması halinde kapora derhal iade edilir."
+  },
+  "terms": {
+    "extraClauses": [
+      "Araç, kapora süresince başka müşteriye satılmaz veya ikinci kapora alınmaz."
+    ]
+  }
+}

@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Finatura API Gateway
+  version: 0.1.0
+  description: |
+    Finatura SaaS ortak API Gateway + Auth iskeleti (stub).
+    JWT tabanlı giriş, tenant context ve rate-limit placeholder içerir.
+    Tenant DB yönlendirmesi `services/tenant-router` sorumluluğundadır.
+  contact:
+    name: Finatura
+    url: https://finatura.app
+
+servers:
+  - url: http://localhost:3000
+    description: Yerel geliştirme
+
+tags:
+  - name: health
+  - name: auth
+  - name: gateway
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Liveness
+      responses:
+        '200':
+          description: Servis ayakta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: api-gateway }
+
+  /ready:
+    get:
+      tags: [health]
+      summary: Readiness
+      responses:
+        '200':
+          description: İstek almaya hazır
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: SaaS giriş (stub)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+            example:
+              email: demo@finatura.app
+              password: demo1234
+      responses:
+        '200':
+          description: Access + refresh JWT
+        '401':
+          description: Geçersiz kimlik bilgileri
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Access token yenileme (stub)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Yeni token çifti
+        '401':
+          description: Geçersiz refresh token
+
+  /auth/me:
+    get:
+      tags: [auth]
+      summary: Oturum ve tenant bağlamı
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Kimlik + tenant context
+        '401':
+          description: Yetkisiz
+
+  /v1/ping:
+    get:
+      tags: [gateway]
+      summary: Korumalı ping (auth + tenant)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Bağlam doğrulandı
+        '401':
+          description: Yetkisiz
+        '403':
+          description: Tenant uyuşmazlığı
+        '429':
+          description: Rate limit (placeholder)
+
+  /v1/tenant/ping:
+    get:
+      tags: [gateway]
+      summary: Tenant-router proxy — izole DB ping
+      description: |
+        api-gateway → tenant-router `/api/tenant/ping`.
+        X-Tenant-ID zorunlu bağlam (JWT veya header).
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Tenant DB erişilebilir
+        '401':
+          description: Yetkisiz
+        '404':
+          description: Tenant bulunamadı
+        '502':
+          description: tenant-router ulaşılamadı
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantIdHeader:
+      name: X-Tenant-ID
+      in: header
+      required: false
+      description: |
+        Opsiyonel. JWT içindeki tenantId/slug ile uyumlu olmalı.
+        Downstream tenant-router aynı başlığı bekler.
+      schema:
+        type: string
+        format: uuid

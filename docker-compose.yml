@@ -1,0 +1,46 @@
+# Finatura — yerel geliştirme altyapısı
+# Merkez kontrol düzlemi + örnek kiracı (tenant) PostgreSQL
+
+services:
+  postgres-central:
+    image: postgres:16-alpine
+    container_name: finatura-postgres-central
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finatura_central
+      POSTGRES_USER: finatura
+      POSTGRES_PASSWORD: finatura_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_central:/var/lib/postgresql/data
+      - ./database/central:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finatura -d finatura_central"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Örnek izole kiracı DB (şablon şeması ile)
+  postgres-tenant-ornek:
+    image: postgres:16-alpine
+    container_name: finatura-postgres-tenant-ornek
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tenant_ornek
+      POSTGRES_USER: finatura_tenant
+      POSTGRES_PASSWORD: finatura_tenant_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_tenant_ornek:/var/lib/postgresql/data
+      - ./database/tenant_template:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finatura_tenant -d tenant_ornek"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata_central:
+  pgdata_tenant_ornek:

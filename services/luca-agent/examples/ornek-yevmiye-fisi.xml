@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LucaFisAktarim versiyon="1.0" xmlns="https://finatura.app/schemas/luca-fis-aktarim/v1">
+  <Meta>
+    <Uretici>Finatura Luca Agent</Uretici>
+    <UretilmeZamani>2026-07-14T19:48:46.021Z</UretilmeZamani>
+    <Amac>Yevmiye fisi aktarimi (e-Fatura, gider pusulasi, banka)</Amac>
+  </Meta>
+  <Firma>
+    <Unvan>Örnek Oto Galeri Ltd. Şti.</Unvan>
+    <Vkn>1234567890</Vkn>
+  </Firma>
+  <Donem>
+    <Yil>2026</Yil>
+    <Ay>07</Ay>
+  </Donem>
+  <Fisler>
+    <Fis>
+      <FisNo>1</FisNo>
+      <FisTarihi>2026-07-05</FisTarihi>
+      <FisTipi>Mahsup</FisTipi>
+      <FisKodu>MM</FisKodu>
+      <BelgeTuru>e-Fatura</BelgeTuru>
+      <Aciklama>e-Fatura GIB2026000000123 — Ahmet Yılmaz (12345678901)</Aciklama>
+      <Kaynak>efatura</Kaynak>
+      <KaynakId>a1000000-0000-4000-8000-000000000001</KaynakId>
+      <Satirlar>
+        <Satir>
+          <SiraNo>1</SiraNo>
+          <HesapKodu>120.01.001</HesapKodu>
+          <HesapAdi>Alıcılar</HesapAdi>
+          <EvrakNo>GIB2026000000123</EvrakNo>
+          <EvrakTarihi>2026-07-05</EvrakTarihi>
+          <Aciklama>e-Fatura GIB2026000000123 — Ahmet Yılmaz (12345678901)</Aciklama>
+          <Borc>1000000.00</Borc>
+          <Alacak>0.00</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>2</SiraNo>
+          <HesapKodu>600</HesapKodu>
+          <HesapAdi>Yurtiçi Satışlar</HesapAdi>
+          <EvrakNo>GIB2026000000123</EvrakNo>
+          <EvrakTarihi>2026-07-05</EvrakTarihi>
+          <Aciklama>e-Fatura GIB2026000000123 — Ahmet Yılmaz (12345678901)</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>847457.63</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>3</SiraNo>
+          <HesapKodu>391</HesapKodu>
+          <HesapAdi>Hesaplanan KDV</HesapAdi>
+          <EvrakNo>GIB2026000000123</EvrakNo>
+          <EvrakTarihi>2026-07-05</EvrakTarihi>
+          <Aciklama>e-Fatura GIB2026000000123 — Ahmet Yılmaz (12345678901)</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>152542.37</Alacak>
+        </Satir>
+      </Satirlar>
+    </Fis>
+    <Fis>
+      <FisNo>2</FisNo>
+      <FisTarihi>2026-07-08</FisTarihi>
+      <FisTipi>Mahsup</FisTipi>
+      <FisKodu>MM</FisKodu>
+      <BelgeTuru>Gider Pusulasi</BelgeTuru>
+      <Aciklama>Gider Pusulası GP2026000000045 — Mehmet Demir (98765432109)</Aciklama>
+      <Kaynak>gider_pusulasi</Kaynak>
+      <KaynakId>a1000000-0000-4000-8000-000000000002</KaynakId>
+      <Satirlar>
+        <Satir>
+          <SiraNo>1</SiraNo>
+          <HesapKodu>153</HesapKodu>
+          <HesapAdi>Ticari Mallar</HesapAdi>
+          <EvrakNo>GP2026000000045</EvrakNo>
+          <EvrakTarihi>2026-07-08</EvrakTarihi>
+          <Aciklama>Gider Pusulası GP2026000000045 — Mehmet Demir (98765432109)</Aciklama>
+          <Borc>500000.00</Borc>
+          <Alacak>0.00</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>2</SiraNo>
+          <HesapKodu>320.01.010</HesapKodu>
+          <HesapAdi>Satıcılar</HesapAdi>
+          <EvrakNo>GP2026000000045</EvrakNo>
+          <EvrakTarihi>2026-07-08</EvrakTarihi>
+          <Aciklama>Gider Pusulası GP2026000000045 — Mehmet Demir (98765432109)</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>400000.00</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>3</SiraNo>
+          <HesapKodu>360</HesapKodu>
+          <HesapAdi>Ödenecek Vergi (Stopaj)</HesapAdi>
+          <EvrakNo>GP2026000000045</EvrakNo>
+          <EvrakTarihi>2026-07-08</EvrakTarihi>
+          <Aciklama>Gider Pusulası GP2026000000045 — Mehmet Demir (98765432109)</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>100000.00</Alacak>
+        </Satir>
+      </Satirlar>
+    </Fis>
+    <Fis>
+      <FisNo>3</FisNo>
+      <FisTarihi>2026-07-06</FisTarihi>
+      <FisTipi>Mahsup</FisTipi>
+      <FisKodu>MM</FisKodu>
+      <BelgeTuru>Banka</BelgeTuru>
+      <Aciklama>34 ABC 123 araç bedeli — Ahmet Yılmaz</Aciklama>
+      <Kaynak>banka_gelen</Kaynak>
+      <KaynakId>b2000000-0000-4000-8000-000000000001</KaynakId>
+      <Satirlar>
+        <Satir>
+          <SiraNo>1</SiraNo>
+          <HesapKodu>102</HesapKodu>
+          <HesapAdi>Bankalar</HesapAdi>
+          <EvrakNo>B20000000001</EvrakNo>
+          <EvrakTarihi>2026-07-06</EvrakTarihi>
+          <Aciklama>34 ABC 123 araç bedeli — Ahmet Yılmaz</Aciklama>
+          <Borc>1000000.00</Borc>
+          <Alacak>0.00</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>2</SiraNo>
+          <HesapKodu>120.01.001</HesapKodu>
+          <HesapAdi>Alıcılar</HesapAdi>
+          <EvrakNo>B20000000001</EvrakNo>
+          <EvrakTarihi>2026-07-06</EvrakTarihi>
+          <Aciklama>34 ABC 123 araç bedeli — Ahmet Yılmaz</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>1000000.00</Alacak>
+        </Satir>
+      </Satirlar>
+    </Fis>
+    <Fis>
+      <FisNo>4</FisNo>
+      <FisTarihi>2026-07-09</FisTarihi>
+      <FisTipi>Mahsup</FisTipi>
+      <FisKodu>MM</FisKodu>
+      <BelgeTuru>Banka</BelgeTuru>
+      <Aciklama>Gider pusulası ödemesi GP2026000000045 — Mehmet Demir</Aciklama>
+      <Kaynak>banka_giden</Kaynak>
+      <KaynakId>b2000000-0000-4000-8000-000000000002</KaynakId>
+      <Satirlar>
+        <Satir>
+          <SiraNo>1</SiraNo>
+          <HesapKodu>320.01.010</HesapKodu>
+          <HesapAdi>Satıcılar</HesapAdi>
+          <EvrakNo>B20000000002</EvrakNo>
+          <EvrakTarihi>2026-07-09</EvrakTarihi>
+          <Aciklama>Gider pusulası ödemesi GP2026000000045 — Mehmet Demir</Aciklama>
+          <Borc>400000.00</Borc>
+          <Alacak>0.00</Alacak>
+        </Satir>
+        <Satir>
+          <SiraNo>2</SiraNo>
+          <HesapKodu>102</HesapKodu>
+          <HesapAdi>Bankalar</HesapAdi>
+          <EvrakNo>B20000000002</EvrakNo>
+          <EvrakTarihi>2026-07-09</EvrakTarihi>
+          <Aciklama>Gider pusulası ödemesi GP2026000000045 — Mehmet Demir</Aciklama>
+          <Borc>0.00</Borc>
+          <Alacak>400000.00</Alacak>
+        </Satir>
+      </Satirlar>
+    </Fis>
+  </Fisler>
+</LucaFisAktarim>

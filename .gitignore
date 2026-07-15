@@ -1,0 +1,78 @@
+# --- Ortam & sırlar ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+service-account*.json
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Editör / IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Bağımlılıklar ---
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+**/ios/Pods/
+**/android/.gradle/
+**/android/local.properties
+
+# --- Build çıktıları ---
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+.next/
+.turbo/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# --- Flutter / Dart ---
+**/Flutter/ephemeral/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/*.iml
+**/doc/api/
+
+# --- Python (ileride ajan servisleri) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# --- Log / geçici ---
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# --- Docker ---
+docker-data/
+
+# --- Cursor / ajan ---
+.cursor/
+.agent/
+*.canvas.tsx

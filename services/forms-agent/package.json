@@ -1,0 +1,30 @@
+{
+  "name": "@finatura/forms-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Finatura dijital maslak / teslimat / yer gösterme formları — HTML şablon ve PDF üretimi (iskelet)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "generate:samples": "tsx src/cli/generate-samples.ts",
+    "dev": "tsx watch src/cli/generate-samples.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

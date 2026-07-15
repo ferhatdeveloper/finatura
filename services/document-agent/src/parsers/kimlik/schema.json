@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://finatura.app/schemas/kimlik-ocr-result.json",
+  "title": "KimlikEhliyetOcrResult",
+  "description": "T.C. Kimlik Kartı veya Sürücü Belgesi OCR çıktısı — cari form alanları",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fields", "confidence", "overallConfidence", "warnings"],
+  "properties": {
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tckn", "ad", "soyad", "adSoyad", "dogumTarihi", "belgeTuru"],
+      "properties": {
+        "tckn": {
+          "type": ["string", "null"],
+          "pattern": "^[1-9][0-9]{10}$",
+          "description": "11 haneli TCKN"
+        },
+        "ad": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Ad / Given name(s)"
+        },
+        "soyad": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "Soyad / Surname"
+        },
+        "adSoyad": {
+          "type": ["string", "null"],
+          "description": "Birleşik Ad Soyad"
+        },
+        "dogumTarihi": {
+          "type": ["string", "null"],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Doğum tarihi ISO 8601 (YYYY-MM-DD)"
+        },
+        "belgeTuru": {
+          "type": "string",
+          "enum": ["tc_kimlik", "ehliyet", "unknown"]
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tckn", "ad", "soyad", "dogumTarihi", "belgeTuru"],
+      "properties": {
+        "tckn": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ad": { "type": "number", "minimum": 0, "maximum": 1 },
+        "soyad": { "type": "number", "minimum": 0, "maximum": 1 },
+        "dogumTarihi": { "type": "number", "minimum": 0, "maximum": 1 },
+        "belgeTuru": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "overallConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "extractedBy": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["regex", "llm", "mrz"]
+      }
+    },
+    "rawText": {
+      "type": "string"
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

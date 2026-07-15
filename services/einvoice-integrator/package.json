@@ -1,0 +1,28 @@
+{
+  "name": "@finatura/einvoice-integrator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Finatura e-Fatura entegratör API katmanı — EDM / Uyumsoft / FIT / eLogo / QNB / NES / Nilvera / İzibiz",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/stub.integration.test.ts tests/uyumsoft.live.test.ts tests/edm.live.test.ts tests/fit.live.test.ts tests/elogo.live.test.ts tests/qnb.live.test.ts tests/nes.live.test.ts tests/nilvera.live.test.ts tests/izibiz.live.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@finatura/invoice-transformers": "file:../../packages/invoice-transformers",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

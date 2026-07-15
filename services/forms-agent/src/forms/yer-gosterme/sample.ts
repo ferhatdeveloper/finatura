@@ -1,0 +1,59 @@
+import type { YerGostermeFormData } from "./types.js";
+
+/** Geliştirme / önizleme için örnek yer gösterme verisi. */
+export const sampleYerGosterme: YerGostermeFormData = {
+  meta: {
+    documentNo: "YG-2026-00042",
+    issuedAt: "2026-07-14",
+    place: "İstanbul / Maslak",
+    notes: "Gösterim saati: 14:30. Müşteri eşi ile birlikte bakmıştır.",
+  },
+  letterhead: {
+    companyName: "Maslak Premium Emlak Ltd. Şti.",
+    tradeName: "Finatura Demo — Emlak",
+    address: "Maslak Mah. Büyükdere Cad. No:255 Sarıyer / İstanbul",
+    phone: "+90 212 000 00 00",
+    email: "info@maslak-premium.example",
+    taxOffice: "Maslak",
+    taxNumber: "1234567890",
+  },
+  broker: {
+    fullName: "Ayşe Demir",
+    companyTitle: "Maslak Premium Emlak Ltd. Şti.",
+    tcknOrVkn: "1234567890",
+    phone: "+90 532 000 00 01",
+    licenseNo: "TTSB-34-001234",
+  },
+  client: {
+    fullName: "Mehmet Yılmaz",
+    tcknOrVkn: "12345678901",
+    phone: "+90 533 111 22 33",
+    address: "Atatürk Mah. Çiçek Sk. No:12 Beşiktaş / İstanbul",
+  },
+  owner: {
+    fullName: "Elif Kara",
+    tcknOrVkn: "10987654321",
+  },
+  property: {
+    title: "2+1 satılık daire — site içi",
+    locationText: "İstanbul / Sarıyer / Maslak Mahallesi",
+    ada: "1234",
+    parsel: "56",
+    block: "B",
+    independentSection: "12",
+    netM2: 95,
+    grossM2: 118,
+    propertyType: "konut",
+    listingNo: "RE-4481",
+    askingPriceTry: 12_750_000,
+  },
+  terms: {
+    validityDays: 30,
+    confidentiality: true,
+    commissionNote:
+      "Alım-satımın gerçekleşmesi halinde komisyon oranları taraflarca ayrıca imzalanacak yetki / komisyon sözleşmesine tabidir.",
+    extraClauses: [
+      "Müşteri, aynı taşınmazı 30 gün içinde üçüncü şahıs üzerinden satın alması halinde gösterim yapan ofisin emeğinin korunacağını kabul eder.",
+    ],
+  },
+};
