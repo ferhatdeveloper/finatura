@@ -58,8 +58,8 @@ Marketing / app deploy **PostgreSQL açmaz**. Host port bağlamaz.
 | Ağ | `berqenas_net` | `berqenas_net` | `berqenas_net` |
 | PostgreSQL volume | `saas_postgres_data` | `kargomkapinda_pg_data` | **yok** (marketing/app) |
 | Host portları | `:5432`, `:3001–3020`, `:8080` | yok (internal) | **yok** |
-| Servis adları | `saas_postgres`, `postgrest_*` | `kargomkapinda_*` | `finatura_web`, `finatura_app` |
-| Domain | `retailex.app` | (portal) | **`finatura.app`**, `app.`, `login.` |
+| Servis adları | `saas_postgres`, `postgrest_*` | `kargomkapinda_*` | `finatura_web`, `finatura_app`, `finatura_mm` |
+| Domain | `retailex.app` | (portal) | **`finatura.app`**, `app.`, `login.`, `mm.` |
 
 Yerel Finatura DB host portları: **`:5440`** (merkez), **`:5441`** (örnek kiracı) — RetailEX `:5432` / Kargo `:5433` ile çakışmaz.
 
@@ -119,7 +119,14 @@ Yerel: `docker compose -f docker-compose.web.yml -f docker-compose.web.local.yml
 
 Yerel: `docker compose -f docker-compose.app.yml -f docker-compose.app.local.yml up -d --build` → `http://localhost:8081`
 
-Ayrıntı: [`apps/mobile/README.md`](./apps/mobile/README.md) · [`apps/web/README.md`](./apps/web/README.md).
+### Mali müşavir (`mm`)
+
+1. Docker Compose · Compose Path: `./docker-compose.mm.yml`
+2. Domains → servis `finatura_mm` · port **80** · `mm.finatura.app`
+
+Yerel: `docker compose -f docker-compose.mm.yml -f docker-compose.mm.local.yml up -d --build` → `http://localhost:8082`
+
+Ayrıntı: [`apps/mobile/README.md`](./apps/mobile/README.md) · [`apps/web/README.md`](./apps/web/README.md) · [`apps/accountant-portal/README.md`](./apps/accountant-portal/README.md).
 
 ## Yerel geliştirme (Docker — PostgreSQL)
 

@@ -1,0 +1,7 @@
+# Yerel override — host 8082 → konteyner 80
+# Kullanım: docker compose -f docker-compose.mm.yml -f docker-compose.mm.local.yml up -d --build
+
+services:
+  finatura_mm:
+    ports:
+      - "8082:80"
