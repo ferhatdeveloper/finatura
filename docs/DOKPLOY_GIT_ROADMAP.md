@@ -14,37 +14,27 @@ Bu dosya **yapılacaklar** odaklıdır. Ürün fazları için bkz. [`FINATURA_RO
 | Compose | Path | Domain(ler) | Port | Branch | Status |
 |---------|------|-------------|------|--------|--------|
 | `finatura-web` | `./docker-compose.dokploy.yml` | `finatura.app`, `www.finatura.app` | 80 | `main` | ✅ done |
-| `finatura-app` | `./docker-compose.app.yml` | `app.finatura.app`, `login.finatura.app` | 80 | `main` | ✅ done |
-| `finatura-mm` | `./docker-compose.mm.yml` | `mm.finatura.app` | 80 | `main` | ✅ done |
+| `finatura-app` | `./docker-compose.app.yml` | `app.finatura.app`, `login.finatura.app` | 80 | `main` | ✅ done · `API_BASE_URL` build-arg |
+| `finatura-mm` | `./docker-compose.mm.yml` | `mm.finatura.app` | 80 | `main` | ✅ done · `VITE_API_GATEWAY_URL` build-arg |
 | `finatura-api` | `./docker-compose.api.yml` | `api.finatura.app` | 3000 | `main` | ✅ done (stub) |
 
-| Host | Public DNS A | Traefik (Host → IP) |
-|------|--------------|---------------------|
-| `finatura.app` / `www` | ✅ `72.60.182.107` | ✅ 200 `/health` |
-| `app` / `login` / `mm` / `api` | ❌ yok | ✅ 200 (IP + Host) |
-
-Auto-deploy: dört compose’da da **açık** (`main` push → redeploy).
+| Host | Public DNS A | Traefik (Host → IP) | Let's Encrypt |
+|------|--------------|---------------------|---------------|
+| `finatura.app` / `www` | ✅ `72.60.182.107` | ✅ | ✅ CN=finatura.app |
+| `app` / `login` / `mm` / `api` | ⚠ henüz yok / yayılmıyor | ✅ 200 | ❌ TRAEFIK DEFAULT (DNS sonrası yenilenecek) |
 
 ---
 
 ## 1) HEMEN — DNS (bloklayıcı)
 
-Registrar (nameserver: `lunar`/`solar.dns-parking.com`) üzerinde **A kaydı** ekle → `72.60.182.107`:
+Registrar’da **A kaydı** → `72.60.182.107` (www gibi CNAME→apex de olur):
 
 - [ ] `app.finatura.app`
 - [ ] `login.finatura.app`
 - [ ] `mm.finatura.app`
 - [ ] `api.finatura.app`
 
-Kontrol:
-
-```bash
-dig +short app.finatura.app A
-curl -skI https://app.finatura.app/ | head -5
-curl -sk https://api.finatura.app/health
-```
-
-Dokploy Domains zaten tanımlı; DNS gelince Let’s Encrypt sertifikaları public olarak da yeşile döner.
+> Not: Apex/www çalışıyor; alt alanlar 8.8.8.8 / 1.1.1.1’de hâlâ boşsa kayıt eklenmemiş veya yayılmamış demektir. DNS gelince Dokploy’da ilgili compose’u **Redeploy** veya domain’i kaydet→Let’s Encrypt yenilenir.
 
 ---
 
@@ -65,17 +55,17 @@ API stub ayakta (`AUTH_PROVIDER=stub`, Postgres yok).
 
 ### 3.1 Flutter (`finatura-app`)
 
-- [ ] `apps/mobile/Dockerfile` build’e `--dart-define=API_BASE_URL=https://api.finatura.app` (veya build-arg)
-- [ ] `docker-compose.app.yml` / Dokploy env ile göm
-- [ ] Redeploy `finatura-app`
-- [ ] `login.finatura.app` → demo login stub’a istek atıyor mu doğrula
+- [x] `apps/mobile/Dockerfile` build’e `--dart-define=API_BASE_URL=…` (varsayılan `https://api.finatura.app`)
+- [x] `docker-compose.app.yml` build-arg
+- [ ] Redeploy `finatura-app` (bu PR sonrası)
+- [ ] `login.finatura.app` → demo login stub’a istek (DNS + SSL sonrası)
 
 ### 3.2 MM portal (`finatura-mm`)
 
-- [ ] Build arg/env: `VITE_API_GATEWAY_URL=https://api.finatura.app`
-- [ ] İsteğe `VITE_AUTH_MODE=gateway` (veya `auto`)
-- [ ] Redeploy `finatura-mm`
-- [ ] `mm.finatura.app/giris` gateway login dener
+- [x] Build arg: `VITE_API_GATEWAY_URL=https://api.finatura.app`
+- [x] `VITE_AUTH_MODE=auto`
+- [ ] Redeploy `finatura-mm` (bu PR sonrası)
+- [ ] `mm.finatura.app/giris` gateway login (DNS sonrası)
 
 ### 3.3 Marketing (`finatura-web`)
 

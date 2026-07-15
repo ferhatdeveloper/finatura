@@ -13,6 +13,8 @@ class ApiConfig {
   /// iOS simülatör / web → `http://127.0.0.1:3000` veya `http://localhost:3000`
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
+    // Yerel: --dart-define=API_BASE_URL=http://localhost:3000
+    // Docker/Dokploy production build-arg varsayılanı: https://api.finatura.app
     defaultValue: 'http://localhost:3000',
   );
 

@@ -15,7 +15,11 @@ COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 
 COPY . .
-RUN flutter build web --release --base-href /
+
+# Production API Gateway (override with --build-arg API_BASE_URL=…)
+ARG API_BASE_URL=https://api.finatura.app
+RUN flutter build web --release --base-href / \
+  --dart-define=API_BASE_URL=${API_BASE_URL}
 
 FROM nginx:1.27-alpine AS production
 RUN apk add --no-cache wget

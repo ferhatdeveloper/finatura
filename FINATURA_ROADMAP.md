@@ -287,8 +287,9 @@ Kaynak compose: `docker-compose.dokploy.yml`, `docker-compose.app.yml`, `docker-
 | Gateway / DB sırları | api-gateway + Postgres | Dokploy Secrets; repo’ya commit etme |
 
 - [x] www Application’da `VITE_APP_URL` set
-- [ ] app Application’da `API_BASE_URL` (ve gerekiyorsa document-agent URL) set
+- [x] app Application’da `API_BASE_URL` build-arg (Dokploy compose)
 - [x] Opsiyonel servislerde secret’lar Dokploy env/secret store’da *(api JWT_SECRET)*
+- [x] mm Application’da `VITE_API_GATEWAY_URL` build-arg
 
 ---
 

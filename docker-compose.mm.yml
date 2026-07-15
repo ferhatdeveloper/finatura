@@ -11,6 +11,9 @@ services:
     build:
       context: ./apps/accountant-portal
       dockerfile: Dockerfile
+      args:
+        VITE_API_GATEWAY_URL: ${VITE_API_GATEWAY_URL:-https://api.finatura.app}
+        VITE_AUTH_MODE: ${VITE_AUTH_MODE:-auto}
     image: finatura-mm:latest
     restart: unless-stopped
     expose:
