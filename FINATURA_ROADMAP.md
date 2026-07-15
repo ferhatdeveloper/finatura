@@ -187,11 +187,138 @@ Kullanım bazlı gelir modelinin sisteme kurulması.
 
 ---
 
+## AŞAMA D — Dokploy Deploy Checklist
+
+Production hedefi **Dokploy** (Vercel yok). Kaynak: `apps/web/Dockerfile`, `apps/mobile/Dockerfile`, `docker-compose.web.yml`, `docker-compose.app.yml`, kök/`apps/*/README`, [`docs/MIMARI_ISTEMCI.md`](docs/MIMARI_ISTEMCI.md).
+
+### Cursor AI’a talimat
+
+> `FINATURA_ROADMAP.md` içindeki **AŞAMA D — Dokploy Deploy Checklist** maddelerini sırayla uygula. Dokploy MCP varsa Application / domain / env / deploy adımlarını oradan yap; yoksa kullanıcıya Dokploy UI’deki manuel adımları checkbox’larla takip ettir. Force push yapma; `origin main`’e normal push yeterli.
+
+---
+
+### D.0 — Ortak hazırlık (GitHub & sunucu)
+
+- [ ] Dokploy’da GitHub repo bağlandı: `ferhatdeveloper/finatura`
+- [ ] Branch: `main` (auto-deploy isteniyorsa webhook / otomatik deploy açık)
+- [ ] DNS A/AAAA veya CNAME kayıtları Dokploy sunucusuna yönlendirildi
+- [ ] `apps/dashboard` için **yeni Application oluşturulmadı** (frozen/legacy)
+
+---
+
+### D.1 — www (marketing, Vite) → `www.finatura.app`
+
+| Ayar | Değer |
+|------|--------|
+| Dockerfile | `apps/web/Dockerfile` |
+| Context | `apps/web` |
+| Port | `80` |
+| Compose (opsiyonel) | `docker-compose.web.yml` (yerel host `8080:80`) |
+| Domain | `www.finatura.app` (ve/veya apex `finatura.app`) |
+
+- [ ] Dokploy Application oluşturuldu (Dockerfile veya Compose)
+- [ ] Path / context / port yukarıdaki tabloya göre ayarlandı
+- [ ] Build arg: `VITE_APP_URL=https://login.finatura.app` (Giriş/Kayıt CTA)
+- [ ] Domain eklendi + **SSL** (Let's Encrypt / Traefik) etkin
+- [ ] Deploy başarılı; `https://www.finatura.app` açılıyor
+- [ ] CTA’lar `login.finatura.app`’e gidiyor (yanlış host yok)
+
+---
+
+### D.2 — app / login (Flutter Web) → `app.finatura.app` + `login.finatura.app`
+
+| Ayar | Değer |
+|------|--------|
+| Dockerfile | `apps/mobile/Dockerfile` |
+| Context | `apps/mobile` |
+| Port | `80` |
+| Compose (opsiyonel) | `docker-compose.app.yml` (yerel host `8081:80`) |
+| Domains | **Aynı image’a** `app.finatura.app` **ve** `login.finatura.app` |
+
+- [ ] Dokploy Application oluşturuldu (Dockerfile veya Compose)
+- [ ] Path / context / port yukarıdaki tabloya göre ayarlandı
+- [ ] İki domain aynı Application’a bağlandı + **SSL** her ikisi için
+- [ ] Build’de API adresi gömülü (gerekirse Dockerfile’a `--dart-define=API_BASE_URL=…` / build-arg ekle; hedef örn. `https://api.finatura.app`)
+- [ ] Deploy başarılı; her iki host’ta Flutter SPA açılıyor
+- [ ] SPA deep-link / refresh nginx `try_files` ile çalışıyor
+
+---
+
+### D.3 — Opsiyonel: mm / api-gateway / postgres
+
+> Henüz production Dockerfile yoksa önce image’ı repo’ya ekle; sonra Dokploy Application aç.
+
+#### D.3.1 — `mm.finatura.app` (accountant-portal)
+
+- [ ] Dockerfile + nginx (veya Compose) eklendi (`apps/accountant-portal`)
+- [ ] Build env: `VITE_API_GATEWAY_URL=https://api.finatura.app` (veya gateway URL)
+- [ ] Domain `mm.finatura.app` + SSL
+- [ ] Deploy sonrası `/giris` ve panel rotaları kontrol edildi
+
+#### D.3.2 — API Gateway (`api.finatura.app` hedefi)
+
+- [ ] `services/api-gateway` için Docker/Compose production tanımı
+- [ ] Env: `AUTH_PROVIDER`, `JWT_*`, `CENTRAL_DATABASE_URL`, `TENANT_ROUTER_URL`, rate-limit vb. (`.env.example` referans)
+- [ ] Domain `api.finatura.app` + SSL; health: `/health`, `/ready`
+- [ ] Flutter / portal `API_BASE_URL` / `VITE_API_GATEWAY_URL` bu host’a bakıyor
+
+#### D.3.3 — PostgreSQL (compose)
+
+- [ ] Yerel gelişim: kök `docker-compose.yml` (`postgres-central` :5432, `postgres-tenant-ornek` :5433) — **production sırları `finatura_dev` ile bırakılmamalı**
+- [ ] Dokploy’da production Postgres (managed veya Compose volume) + yedekleme planı
+- [ ] Central şema init: `database/central/*.sql`; tenant şablon: `database/tenant_template/`
+
+---
+
+### D.4 — Environment & build-arg özeti
+
+| Değişken / arg | Nerede | Örnek / not |
+|----------------|--------|-------------|
+| `VITE_APP_URL` | `apps/web` build-arg | `https://login.finatura.app` |
+| `API_BASE_URL` | Flutter web (`--dart-define` / ileride build-arg) | `https://api.finatura.app` |
+| `DOCUMENT_AGENT_BASE_URL` | Flutter (scan) | Agent URL; yoksa stub |
+| `VITE_API_GATEWAY_URL` | `apps/accountant-portal` | Gateway URL |
+| `VITE_AUTH_MODE` | accountant-portal | `auto` / `mock` / `gateway` |
+| Gateway / DB sırları | api-gateway + Postgres | Dokploy Secrets; repo’ya commit etme |
+
+- [ ] www Application’da `VITE_APP_URL` set
+- [ ] app Application’da `API_BASE_URL` (ve gerekiyorsa document-agent URL) set
+- [ ] Opsiyonel servislerde secret’lar Dokploy env/secret store’da
+
+---
+
+### D.5 — Domain, SSL, GitHub
+
+- [ ] `www.finatura.app` (+ isteğe apex) → marketing Application
+- [ ] `app.finatura.app` → Flutter Application
+- [ ] `login.finatura.app` → aynı Flutter Application
+- [ ] (opsiyonel) `mm.finatura.app`, `api.finatura.app`
+- [ ] Tüm host’larda HTTPS yeşil / otomatik yenileme
+- [ ] GitHub bağlama + `main` push sonrası auto-deploy (tercih)
+- [ ] Yanlış Project’e dashboard / frozen app bağlanmadı
+
+---
+
+### D.6 — Her deploy sonrası kontrol listesi
+
+- [ ] Dokploy build log’u yeşil (www ve/veya app)
+- [ ] `https://www.finatura.app` — landing + CTA
+- [ ] `https://login.finatura.app` — giriş formu / demo akışı
+- [ ] `https://app.finatura.app` — ürün SPA
+- [ ] Hard refresh / deep link 404 vermiyor (nginx SPA)
+- [ ] (API ayaktaysa) `POST /auth/login` veya `/health` yanıt veriyor
+- [ ] Mobil/Web konsolunda kritik JS hatası yok
+- [ ] SSL süresi / redirect http→https doğru
+
+---
+
 ## İlk Kurulum Talimatı (Cursor AI)
 
 Composer (`Cmd+I` / `Ctrl+I`) ile projeyi şu talimatla başlatın:
 
 > `FINATURA_ROADMAP.md` dosyasındaki **AŞAMA 1 (1.1 ve 1.3)** adımlarını uygulamaya başla. Bana central veritabanı şemasını ve her yeni üye firma için kurulacak izole `tenant_template` SQL şemasını oluştur.
+
+Deploy için: yukarıdaki **AŞAMA D — Dokploy Deploy Checklist** ve **Cursor AI’a talimat** satırını kullanın.
 
 ---
 
@@ -205,6 +332,7 @@ Composer (`Cmd+I` / `Ctrl+I`) ile projeyi şu talimatla başlatın:
 | 4 | Finteo & eşleştirme | Aşama 1, 3 | Mock Finteo + matching lib + settlement UI iskelet |
 | 5 | Luca / mali müşavir köprüsü | Aşama 3–4 | XML export + mock portal iskelet |
 | 6 | Kontör & abonelik | Aşama 1 + canlı kullanım | Billing API iskelet; gerçek ödeme yok |
+| D | Dokploy deploy checklist | www + Flutter Docker | Checklist; www/app Dockerfile hazır; mm/api opsiyonel |
 
 ---
 
