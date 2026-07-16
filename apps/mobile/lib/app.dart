@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:finatura_mobile/features/auth/auth.dart';
+import 'package:finatura_mobile/features/rates/rates.dart';
 import 'package:finatura_mobile/features/scan/scan.dart';
 import 'package:finatura_mobile/features/settlement/settlement.dart';
 import 'package:finatura_mobile/features/shell/shell.dart';
@@ -13,6 +14,8 @@ import 'package:finatura_mobile/features/shell/shell.dart';
 /// /home               → HomeSummaryScreen
 /// /scan               → DocumentScanScreen
 /// /settlement         → SettlementInboxScreen
+/// /settlement/manual-cari → ManualCariMovementScreen
+/// /rates              → MarketRatesScreen
 /// /e-invoice          → EInvoiceStubScreen
 /// /account            → AccountScreen
 /// ```
@@ -93,10 +96,13 @@ class _FinaturaAppState extends State<FinaturaApp> {
                 );
               },
             ),
-        HomeSummaryScreen.routeName: (_) => const HomeSummaryScreen(),
+        HomeSummaryScreen.routeName: (_) => HomeSummaryScreen(auth: _auth),
         DocumentScanScreen.routeName: (_) => const DocumentScanScreen(),
         SettlementInboxScreen.routeName: (_) =>
             SettlementInboxScreen(auth: _auth),
+        ManualCariMovementScreen.routeName: (_) =>
+            ManualCariMovementScreen(auth: _auth),
+        MarketRatesScreen.routeName: (_) => MarketRatesScreen(auth: _auth),
         EInvoiceStubScreen.routeName: (_) => const EInvoiceStubScreen(),
         AccountScreen.routeName: (_) => AnimatedBuilder(
               animation: _auth,

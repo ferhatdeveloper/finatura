@@ -13,9 +13,10 @@ import '../models/auth_user.dart';
 class AuthApi {
   AuthApi({
     http.Client? client,
-    this.baseUrl = ApiConfig.baseUrl,
+    String? baseUrl,
     this.allowMock = ApiConfig.allowMock,
-  }) : _client = client ?? http.Client();
+  })  : _client = client ?? http.Client(),
+        baseUrl = ApiConfig.sanitizeBaseUrl(baseUrl ?? ApiConfig.baseUrl);
 
   final http.Client _client;
   final String baseUrl;

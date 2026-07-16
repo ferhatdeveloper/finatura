@@ -4,6 +4,8 @@ import { closeCentralPool } from './db/centralPool.js';
 import { tenantContext } from './middleware/tenantContext.js';
 import { bankTransactionsRouter } from './routes/bankTransactions.js';
 import { healthRouter } from './routes/health.js';
+import { manualVeresiyeRouter } from './routes/manualVeresiye.js';
+import { ratesRouter } from './routes/rates.js';
 import { settlementsRouter } from './routes/settlements.js';
 import { tenantPoolCache } from './tenant/poolCache.js';
 import './types.js';
@@ -20,7 +22,9 @@ app.use(healthRouter);
  */
 app.get('/api/tenant/ping', tenantContext, async (req, res) => {
   try {
-    const result = await req.tenantPool!.query('SELECT 1 AS ok, current_database() AS db');
+    const result = await req.tenantPool!.query(
+      'SELECT 1 AS ok, current_database() AS db',
+    );
     res.json({
       tenantId: req.tenant!.tenantId,
       slug: req.tenant!.slug,
@@ -38,7 +42,9 @@ app.get('/api/tenant/ping', tenantContext, async (req, res) => {
 
 /** Banka hareketleri + matching önerileri + mahsup (gateway /v1/tenant/*). */
 app.use('/api/tenant', bankTransactionsRouter);
+app.use('/api/tenant', ratesRouter);
 app.use('/api/tenant', settlementsRouter);
+app.use('/api/tenant', manualVeresiyeRouter);
 
 app.use(
   (
@@ -64,7 +70,7 @@ async function shutdown(signal: string): Promise<void> {
     try {
       await tenantPoolCache.closeAll();
       await closeCentralPool();
-      console.log('[tenant-router] pool\'lar kapatıldı');
+      console.log("[tenant-router] pool'lar kapatıldı");
       process.exit(0);
     } catch (err) {
       console.error('[tenant-router] kapatma hatası:', err);

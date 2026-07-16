@@ -17,6 +17,10 @@ export const endpoints = {
   me: "/auth/me",
   /** GET — cari + açık veresiye özeti (tenant proxy) */
   cariSummary: "/v1/tenant/caris/summary",
+  /** GET — cari seçenekleri */
+  caris: "/v1/tenant/caris",
+  /** POST — elden tahsilat/tediye */
+  manualCariMovement: "/v1/tenant/veresiye-transactions/manual",
   /** GET — banka mutabakat (settlement) listesi */
   settlements: "/v1/tenant/settlements",
   /** GET — e-fatura taslakları */

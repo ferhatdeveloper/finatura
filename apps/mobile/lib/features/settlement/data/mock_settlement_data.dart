@@ -1,4 +1,5 @@
 import '../models/bank_transaction.dart';
+import '../models/manual_cari_movement.dart';
 import '../models/veresiye_open_debt.dart';
 
 /// Debug-only örnek veri — üretim yolunda kullanılmaz.
@@ -7,6 +8,27 @@ import '../models/veresiye_open_debt.dart';
 /// (bkz. [SettlementApiConfig.allowMock]). API hatasında sessiz doldurma yok.
 class MockSettlementData {
   MockSettlementData._();
+
+  static const List<ManualCariOption> cariOptions = [
+    ManualCariOption(
+      id: 'cari-ay',
+      title: 'Ahmet Yılmaz',
+      code: 'AY-001',
+      openBalance: 185000,
+    ),
+    ManualCariOption(
+      id: 'cari-sk',
+      title: 'Selin Karaca',
+      code: 'SK-002',
+      openBalance: 42500.50,
+    ),
+    ManualCariOption(
+      id: 'cari-has',
+      title: 'Has Altın Cari',
+      code: 'HAS-003',
+      openBalance: 98000,
+    ),
+  ];
 
   static final List<BankTransaction> inboundUnmatched = [
     BankTransaction(

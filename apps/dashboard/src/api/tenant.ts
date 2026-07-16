@@ -2,10 +2,13 @@ import { apiConfig, endpoints } from "./config";
 import { gatewayFetch, loadSession } from "./client";
 import {
   mockCariSummary,
+  mockCariOptions,
   mockEinvoiceDrafts,
   mockSettlements,
+  type CariOption,
   type CariSummary,
   type EinvoiceDraft,
+  type ManualCariMovementInput,
   type SettlementItem,
 } from "./mock";
 
@@ -25,6 +28,37 @@ export async function fetchCariSummary(): Promise<CariSummary> {
   }
   return gatewayFetch<CariSummary>(endpoints.cariSummary, {
     method: "GET",
+    ...authHeaders(),
+  });
+}
+
+/** GET /v1/tenant/caris */
+export async function fetchCariOptions(): Promise<CariOption[]> {
+  if (apiConfig.useMock) {
+    await delay(180);
+    return mockCariOptions();
+  }
+  const data = await gatewayFetch<CariOption[] | { items: CariOption[] }>(
+    endpoints.caris,
+    {
+      method: "GET",
+      ...authHeaders(),
+    },
+  );
+  return Array.isArray(data) ? data : data.items;
+}
+
+/** POST /v1/tenant/veresiye-transactions/manual */
+export async function createManualCariMovement(
+  input: ManualCariMovementInput,
+): Promise<void> {
+  if (apiConfig.useMock) {
+    await delay(220);
+    return;
+  }
+  await gatewayFetch(endpoints.manualCariMovement, {
+    method: "POST",
+    body: JSON.stringify(input),
     ...authHeaders(),
   });
 }

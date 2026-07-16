@@ -3,7 +3,7 @@
  * Parser implementasyonları `src/parsers/*` altında ayrı ajanlara aittir.
  */
 
-export type DocumentType = 'noter' | 'tapu' | 'kimlik' | 'unknown';
+export type DocumentType = 'noter' | 'tapu' | 'kimlik' | 'ehliyet' | 'unknown';
 
 export interface DocumentInput {
   /** Yüklenen dosya tamponu (tesseract için görüntü) */

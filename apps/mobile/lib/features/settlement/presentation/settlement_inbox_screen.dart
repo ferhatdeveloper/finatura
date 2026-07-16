@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:finatura_mobile/features/auth/services/auth_controller.dart';
 
 import '../config/settlement_api_config.dart';
@@ -6,6 +6,7 @@ import '../data/settlement_repository.dart';
 import '../models/bank_transaction.dart';
 import '../models/settlement_action.dart';
 import '../models/veresiye_open_debt.dart';
+import 'manual_cari_movement_screen.dart';
 import 'widgets/bank_transaction_tile.dart';
 import 'widgets/settle_match_sheet.dart';
 
@@ -185,6 +186,14 @@ class _SettlementInboxScreenState extends State<SettlementInboxScreen> {
       appBar: AppBar(
         title: const Text('Banka · Veresiye'),
         actions: [
+          IconButton(
+            tooltip: 'Elden işlem',
+            onPressed: () {
+              Navigator.of(context)
+                  .pushNamed(ManualCariMovementScreen.routeName);
+            },
+            icon: const Icon(Icons.payments_outlined),
+          ),
           IconButton(
             tooltip: 'Yenile',
             onPressed: _loading ? null : _loadInbox,

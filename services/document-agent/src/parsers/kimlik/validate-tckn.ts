@@ -20,9 +20,14 @@ export function isValidTckn(value: string | null | undefined): boolean {
   return d[10] === digit11;
 }
 
-/** Metinden aday TCKN'leri süz (algoritma filtresiyle). */
+/** Metinden aday TCKN'leri süz (algoritma filtresiyle; boşluklu OCR dahil). */
 export function findValidTckns(text: string): string[] {
-  const candidates = text.match(/\b[1-9]\d{10}\b/g) ?? [];
+  const compactRuns = text.match(/\b[1-9](?:[\s.\-]?\d){10}\b/g) ?? [];
+  const plain = text.match(/\b[1-9]\d{10}\b/g) ?? [];
+  const candidates = [
+    ...compactRuns.map((c) => c.replace(/[\s.\-]/g, '')),
+    ...plain,
+  ];
   const unique = [...new Set(candidates)];
   return unique.filter(isValidTckn);
 }

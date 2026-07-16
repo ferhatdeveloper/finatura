@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:finatura_mobile/features/auth/services/auth_controller.dart';
+import 'package:finatura_mobile/features/rates/rates.dart';
 import 'package:finatura_mobile/features/scan/scan.dart';
 import 'package:finatura_mobile/features/settlement/settlement.dart';
 
@@ -53,6 +54,11 @@ class _AppShellState extends State<AppShell> {
       selectedIcon: Icons.account_balance,
     ),
     _ShellDestination(
+      label: 'Kur',
+      icon: Icons.currency_exchange_outlined,
+      selectedIcon: Icons.currency_exchange,
+    ),
+    _ShellDestination(
       label: 'E-fatura',
       icon: Icons.receipt_long_outlined,
       selectedIcon: Icons.receipt_long,
@@ -77,13 +83,13 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final wide =
-        MediaQuery.sizeOf(context).width >= AppShell.wideBreakpoint;
+    final wide = MediaQuery.sizeOf(context).width >= AppShell.wideBreakpoint;
 
     final pages = <Widget>[
-      const HomeSummaryScreen(),
+      HomeSummaryScreen(auth: widget.auth),
       const DocumentScanScreen(),
       SettlementInboxScreen(auth: widget.auth),
+      MarketRatesScreen(auth: widget.auth),
       const EInvoiceStubScreen(),
       AccountScreen(
         displayName: widget.displayName,

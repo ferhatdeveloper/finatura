@@ -65,7 +65,9 @@ class DocumentAgentService {
       final response = await _client
           .post(
             Uri.parse(_analyzeTextUrl),
-            headers: {'Content-Type': 'application/json'},
+            headers: const {
+              'Content-Type': 'application/json',
+            },
             body: jsonEncode({
               'ocrText': ocrText,
               if (documentTypeHint != null) 'documentType': documentTypeHint,
@@ -151,6 +153,7 @@ class DocumentAgentService {
       'noter' => DocumentType.noterSozlesmesi,
       'tapu' => DocumentType.tapu,
       'kimlik' => DocumentType.kimlik,
+      'ehliyet' => DocumentType.ehliyet,
       _ => DocumentType.unknown,
     };
     return _mockResult(type, reason: reason);
@@ -229,7 +232,7 @@ class DocumentAgentService {
 }
 
 extension DocumentTypeApiHint on DocumentType {
-  /// API `documentType` değeri (`noter` | `tapu` | `kimlik`).
+  /// API `documentType` değeri (`noter` | `tapu` | `kimlik` | `ehliyet`).
   String? get apiHint {
     switch (this) {
       case DocumentType.noterSozlesmesi:
@@ -237,8 +240,9 @@ extension DocumentTypeApiHint on DocumentType {
       case DocumentType.tapu:
         return 'tapu';
       case DocumentType.kimlik:
-      case DocumentType.ehliyet:
         return 'kimlik';
+      case DocumentType.ehliyet:
+        return 'ehliyet';
       case DocumentType.unknown:
         return null;
     }

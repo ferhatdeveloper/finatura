@@ -13,6 +13,25 @@ export interface CariSummary {
   }>;
 }
 
+export interface CariOption {
+  id: string;
+  title: string;
+  code?: string;
+  openBalance?: number;
+}
+
+export interface ManualCariMovementInput {
+  cariId: string;
+  operation: "tahsilat" | "tediye";
+  assetKind: "tl" | "gold" | "fx";
+  amount: number;
+  currencyCode: string;
+  description?: string;
+  goldGrams?: number;
+  goldPurity?: number;
+  fxRate?: number;
+}
+
 export interface SettlementItem {
   id: string;
   bankAccountAlias: string;
@@ -104,6 +123,14 @@ export function mockCariSummary(): CariSummary {
       },
     ],
   };
+}
+
+export function mockCariOptions(): CariOption[] {
+  return mockCariSummary().topCaris.map((c) => ({
+    id: c.id,
+    title: c.title,
+    openBalance: c.openBalance,
+  }));
 }
 
 export function mockSettlements(): SettlementItem[] {

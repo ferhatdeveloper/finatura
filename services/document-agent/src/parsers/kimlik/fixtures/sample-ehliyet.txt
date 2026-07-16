@@ -7,5 +7,13 @@ DEMİR
 AYŞE
 3. Date of Birth
 22.07.1985
+4a. Date of issue
+15.03.2018
+4b. Date of expiry
+15.03.2028
 4d. Personal No.
 10000000146
+5. Document No.
+34ABC12345
+9. Categories
+B

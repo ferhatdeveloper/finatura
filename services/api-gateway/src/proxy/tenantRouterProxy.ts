@@ -80,7 +80,8 @@ async function forwardToTenantRouter(
     console.error('[tenant-router-proxy]', err);
     res.status(502).json({
       error: 'tenant_router_unreachable',
-      message: `tenant-router'a ulaşılamadı (${base})`,
+      message:
+        'Tenant servisine ulaşılamadı. Lütfen daha sonra tekrar deneyin.',
     });
     return;
   }

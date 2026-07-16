@@ -48,13 +48,17 @@ describe('parseKimlikOcrSync — T.C. Kimlik', () => {
 describe('parseKimlikOcrSync — Ehliyet', () => {
   it('ehliyet alanlarını ayıklar', () => {
     const ocr = readFileSync(join(fixtures, 'sample-ehliyet.txt'), 'utf8');
-    const result = parseKimlikOcrSync(ocr);
+    const result = parseKimlikOcrSync(ocr, { forceBelgeTuru: 'ehliyet' });
 
     expect(result.fields.belgeTuru).toBe('ehliyet');
     expect(result.fields.tckn).toBe('10000000146');
     expect(result.fields.soyad).toBe('DEMİR');
     expect(result.fields.ad).toBe('AYŞE');
     expect(result.fields.dogumTarihi).toBe('1985-07-22');
+    expect(result.fields.ehliyetNo).toBe('34ABC12345');
+    expect(result.fields.sinif).toBe('B');
+    expect(result.fields.verilisTarihi).toBe('2018-03-15');
+    expect(result.fields.bitisTarihi).toBe('2028-03-15');
   });
 });
 

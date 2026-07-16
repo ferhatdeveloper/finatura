@@ -10,6 +10,7 @@ healthRouter.get('/health', (_req, res) => {
     status: 'ok',
     ocrProvider: config.ocrProvider,
     tesseractLangs: config.tesseractLangs,
+    llm: config.llm,
     parsers: listRegisteredParsers(),
   });
 });

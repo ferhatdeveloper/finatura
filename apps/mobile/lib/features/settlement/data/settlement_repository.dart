@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/settlement_api_config.dart';
 import '../models/bank_transaction.dart';
+import '../models/manual_cari_movement.dart';
 import '../models/settlement_action.dart';
 import '../models/veresiye_open_debt.dart';
 import 'mock_settlement_data.dart';
@@ -15,11 +16,12 @@ import 'mock_settlement_data.dart';
 class SettlementRepository {
   SettlementRepository({
     http.Client? client,
-    this.baseUrl = SettlementApiConfig.baseUrl,
+    String? baseUrl,
     this.allowMock = SettlementApiConfig.allowMock,
     required this.accessToken,
     required this.tenantId,
-  }) : _client = client ?? http.Client();
+  })  : _client = client ?? http.Client(),
+        baseUrl = _normalizeBaseUrl(baseUrl ?? SettlementApiConfig.baseUrl);
 
   final http.Client _client;
   final String baseUrl;
@@ -27,19 +29,35 @@ class SettlementRepository {
   final String accessToken;
   final String tenantId;
 
+  static String _normalizeBaseUrl(String raw) {
+    final trimmed = raw.trim().replaceAll(RegExp(r'/$'), '');
+    if (trimmed.isEmpty) return 'https://api.finatura.app';
+    final lower = trimmed.toLowerCase();
+    if (lower.contains('127.0.0.1') ||
+        lower.contains('localhost') ||
+        lower.contains('10.0.2.2')) {
+      return 'https://api.finatura.app';
+    }
+    return trimmed;
+  }
+
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
         'X-Tenant-ID': tenantId,
       };
 
-  String get _bankTransactionsUrl =>
-      '$baseUrl/v1/tenant/bank-transactions';
+  String get _bankTransactionsUrl => '$baseUrl/v1/tenant/bank-transactions';
 
   String _matchSuggestionsUrl(String bankTxId) =>
       '$baseUrl/v1/tenant/bank-transactions/$bankTxId/match-suggestions';
 
   String get _settlementsUrl => '$baseUrl/v1/tenant/settlements';
+
+  String get _carisUrl => '$baseUrl/v1/tenant/caris';
+
+  String get _manualMovementsUrl =>
+      '$baseUrl/v1/tenant/veresiye-transactions/manual';
 
   /// Eşleşmemiş gelen havaleler.
   Future<List<BankTransaction>> fetchInboundUnmatched({int limit = 100}) async {
@@ -156,6 +174,84 @@ class SettlementRepository {
     }
   }
 
+  /// Elden tahsilat/tediye için cari seçenekleri.
+  Future<List<ManualCariOption>> fetchCariOptions({int limit = 50}) async {
+    if (allowMock) {
+      return MockSettlementData.cariOptions;
+    }
+
+    final uri = Uri.parse(_carisUrl).replace(
+      queryParameters: {'limit': '$limit'},
+    );
+
+    try {
+      final response = await _client
+          .get(uri, headers: _headers)
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return _parseCariOptions(response.body);
+      }
+
+      throw SettlementException(
+        _errorMessage(response, fallback: 'Cari listesi alınamadı'),
+        statusCode: response.statusCode,
+      );
+    } on SettlementException {
+      rethrow;
+    } catch (e) {
+      throw SettlementException('Sunucuya bağlanılamadı: $e');
+    }
+  }
+
+  /// Banka hareketi üretmeden `veresiye_transactions` içine elden hareket yazar.
+  Future<ManualCariMovementResult> createManualCariMovement(
+    ManualCariMovementRequest request,
+  ) async {
+    if (allowMock) {
+      return ManualCariMovementResult(
+        id: 'manual-${DateTime.now().millisecondsSinceEpoch}',
+        cariId: request.cariId,
+        direction: request.direction,
+        assetKind: request.assetKind,
+        amount: request.amount,
+        currencyCode: request.currencyCode,
+        transactionDate: DateTime.now(),
+        description: request.description,
+        goldGrams: request.goldGrams,
+        goldPurity: request.goldPurity,
+        fxRate: request.fxRate,
+      );
+    }
+
+    try {
+      final response = await _client
+          .post(
+            Uri.parse(_manualMovementsUrl),
+            headers: _headers,
+            body: jsonEncode(request.toJson()),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          return ManualCariMovementResult.fromJson(decoded);
+        }
+        throw const SettlementException('Geçersiz elden işlem yanıtı');
+      }
+
+      throw SettlementException(
+        _errorMessage(response, fallback: 'Elden işlem kaydedilemedi'),
+        statusCode: response.statusCode,
+      );
+    } on SettlementException {
+      rethrow;
+    } catch (e) {
+      throw SettlementException('Sunucuya bağlanılamadı: $e');
+    }
+  }
+
   List<BankTransaction> _parseBankTxList(String raw) {
     final decoded = jsonDecode(raw);
     if (decoded is! Map<String, dynamic>) {
@@ -186,17 +282,53 @@ class SettlementRepository {
         .toList();
   }
 
+  List<ManualCariOption> _parseCariOptions(String raw) {
+    final decoded = jsonDecode(raw);
+    if (decoded is! Map<String, dynamic>) {
+      throw const SettlementException('Geçersiz cari listesi yanıtı');
+    }
+    final items = decoded['items'];
+    if (items is! List) {
+      throw const SettlementException('Yanıtta items dizisi yok');
+    }
+    return items
+        .whereType<Map<String, dynamic>>()
+        .map(ManualCariOption.fromJson)
+        .toList();
+  }
+
   String _errorMessage(http.Response response, {required String fallback}) {
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {
         final msg = decoded['message'];
-        if (msg is String && msg.isNotEmpty) return msg;
+        if (msg is String && msg.isNotEmpty) {
+          return _sanitizeUserMessage(msg);
+        }
         final err = decoded['error'];
         if (err is String && err.isNotEmpty) return err;
       }
     } catch (_) {}
     return '$fallback (${response.statusCode})';
+  }
+
+  static String _sanitizeUserMessage(String message) {
+    return message
+        .replaceAll(
+          RegExp(r'https?://127\.0\.0\.1:\d+', caseSensitive: false),
+          'api.finatura.app',
+        )
+        .replaceAll(
+          RegExp(r'https?://localhost:\d+', caseSensitive: false),
+          'api.finatura.app',
+        )
+        .replaceAll(
+          RegExp(
+            r"tenant-router'a ulaşılamadı[^\n.]*",
+            caseSensitive: false,
+          ),
+          'Tenant servisine ulaşılamadı',
+        );
   }
 
   void dispose() {

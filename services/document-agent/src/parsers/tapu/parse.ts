@@ -199,12 +199,10 @@ export async function parseTapuOcr(
         extractedBy[key] = 'llm';
       }
     } catch {
-      warnings.push('LLM çıkarımı başarısız; yalnızca regex sonuçları kullanıldı.');
+      warnings.push('LLM çıkarımı başarısız; yalnızca yerel OCR/regex sonuçları kullanıldı.');
     }
-  } else if (needsLlm && !options.llmExtractor) {
-    warnings.push(
-      'Bazı alanlar eksik veya düşük güvenli; LLM sağlayıcısı bağlanmadı (iskelet).',
-    );
+  } else if (needsLlm && !options.llmExtractor && overall < threshold) {
+    warnings.push('Bazı alanlar düşük güvenli (yerel OCR/regex). Daha net fotoğraf deneyin.');
   }
 
   confidence = scoreFields(fields);

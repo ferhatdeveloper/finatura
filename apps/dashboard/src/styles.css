@@ -62,7 +62,9 @@ a:hover {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -265,7 +267,9 @@ code {
   color: var(--text-muted);
 }
 
-.field input {
+.field input,
+.field select,
+.field textarea {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 0.7rem 0.8rem;
@@ -274,9 +278,16 @@ code {
   font-weight: 500;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
   outline: 2px solid rgba(45, 138, 110, 0.45);
   border-color: var(--leaf);
+}
+
+.field textarea {
+  min-height: 82px;
+  resize: vertical;
 }
 
 .btn-primary {
@@ -305,6 +316,15 @@ code {
   border-radius: var(--radius);
   background: var(--danger-bg);
   color: var(--danger);
+  font-size: 0.88rem;
+}
+
+.form-success {
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--ok-bg);
+  color: var(--ok);
   font-size: 0.88rem;
 }
 
@@ -419,6 +439,21 @@ code {
   margin: 0 0 0.5rem;
   font-family: var(--display);
   font-size: 1.15rem;
+}
+
+.manual-cari-panel {
+  margin-top: 1rem;
+}
+
+.manual-cari-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.manual-cari-form .manual-note {
+  grid-column: span 2;
 }
 
 .panel-lede {

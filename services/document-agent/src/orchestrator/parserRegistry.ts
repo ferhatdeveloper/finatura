@@ -1,10 +1,11 @@
-import { kimlikAdapter, noterAdapter, tapuAdapter } from './adapters/index.js';
+import { ehliyetAdapter, kimlikAdapter, noterAdapter, tapuAdapter } from './adapters/index.js';
 import type { DocumentType, ParserAdapter } from './types.js';
 
 const registry = new Map<DocumentType, ParserAdapter>([
   ['noter', noterAdapter],
   ['tapu', tapuAdapter],
   ['kimlik', kimlikAdapter],
+  ['ehliyet', ehliyetAdapter],
 ]);
 
 export function getParser(documentType: DocumentType): ParserAdapter | undefined {

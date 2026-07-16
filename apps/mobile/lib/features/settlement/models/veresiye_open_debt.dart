@@ -38,11 +38,13 @@ class VeresiyeOpenDebt {
     return VeresiyeOpenDebt(
       id: json['id'] as String? ?? '',
       cariId: json['cariId'] as String? ?? json['cari_id'] as String? ?? '',
-      cariTitle:
-          json['cariTitle'] as String? ?? json['cari_title'] as String? ?? 'Cari',
+      cariTitle: json['cariTitle'] as String? ??
+          json['cari_title'] as String? ??
+          'Cari',
       assetKind: _parseAssetKind(json['assetKind'] ?? json['asset_kind']),
       direction: _parseDirection(json['direction']),
-      openAmount: _toDouble(json['openAmount'] ?? json['open_amount'] ?? json['amount']),
+      openAmount: _toDouble(
+          json['openAmount'] ?? json['open_amount'] ?? json['amount']),
       currencyCode: json['currencyCode'] as String? ??
           json['currency_code'] as String? ??
           'TRY',

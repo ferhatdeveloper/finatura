@@ -1,3 +1,4 @@
+import { preprocessImageForOcr } from './preprocessImage.js';
 import type { OcrProvider, OcrRecognizeInput, OcrRecognizeResult } from './types.js';
 
 const IMAGE_MIME = new Set([
@@ -33,6 +34,7 @@ export class OcrInputError extends Error {
 }
 
 type TesseractWorker = {
+  setParameters: (params: Record<string, string | number>) => Promise<void>;
   recognize: (
     image: Buffer | string,
   ) => Promise<{ data: { text: string; confidence: number } }>;
@@ -40,9 +42,7 @@ type TesseractWorker = {
 };
 
 /**
- * tesseract.js tabanlı OCR.
- * İstemci `ocrText` yoksa görüntü buffer gerekir — stub placeholder’a düşülmez.
- * Offline / fixture için açıkça `OCR_PROVIDER=stub` kullanın.
+ * tesseract.js + hızlı yerel ön işleme (tek PSM pass).
  */
 export class TesseractOcrProvider implements OcrProvider {
   readonly name = 'tesseract' as const;
@@ -73,16 +73,31 @@ export class TesseractOcrProvider implements OcrProvider {
     }
 
     try {
+      let imageBuf: Buffer;
+      try {
+        imageBuf = await preprocessImageForOcr(Buffer.from(input.buffer));
+      } catch {
+        imageBuf = Buffer.from(input.buffer);
+      }
+
       const worker = await this.getWorker();
+      // Tek pass: PSM 6 (tek blok) — hız için ikinci pass yok
+      await worker.setParameters({
+        tessedit_pageseg_mode: '6',
+        preserve_interword_spaces: '1',
+      });
+
       const {
         data: { text, confidence },
-      } = await worker.recognize(input.buffer);
+      } = await worker.recognize(imageBuf);
       const trimmed = text.trim();
+
       if (!trimmed) {
         throw new OcrInputError(
           'Tesseract metin üretemedi (boş OCR). Görüntü kalitesini kontrol edin.',
         );
       }
+
       return {
         text: trimmed,
         provider: this.name,

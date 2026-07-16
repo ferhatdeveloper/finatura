@@ -8,6 +8,7 @@ import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
 import { membershipsRouter } from './routes/memberships.js';
 import { openApiRouter } from './routes/openapi.js';
+import { ratesRouter } from './routes/rates.js';
 import './types.js';
 
 function corsOrigins(): string[] {
@@ -71,6 +72,12 @@ export function createApp(): express.Application {
 
   /** Üyelik / mali müşavir davet & bağlama */
   app.use(membershipsRouter);
+
+  /**
+   * Kur/altın — gateway üzerinde (tenant-router gerekmez).
+   * GET /v1/rates ve GET /v1/tenant/rates
+   */
+  app.use(ratesRouter);
 
   /**
    * Korumalı örnek uç — auth + tenant context.

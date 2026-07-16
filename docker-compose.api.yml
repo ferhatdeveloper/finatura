@@ -28,8 +28,8 @@ services:
       AUTH_STUB_FIRMA_KODU: ${AUTH_STUB_FIRMA_KODU:-DEMO-GALERI}
       AUTH_STUB_ROLE: ${AUTH_STUB_ROLE:-owner}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://finatura.app,https://www.finatura.app,https://app.finatura.app,https://login.finatura.app,https://mm.finatura.app}
-      # Stub modunda tenant-router zorunlu değil; ready "degraded" olabilir
-      TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://127.0.0.1:3100}
+      # Docker/Dokploy internal DNS — asla 127.0.0.1 kullanma (konteyner içi loopback)
+      TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://finatura_router:3100}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]

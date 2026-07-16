@@ -10,7 +10,13 @@ const upload = multer({
   limits: { fileSize: config.maxUploadBytes, files: 1 },
 });
 
-const VALID_TYPES = new Set<DocumentType>(['noter', 'tapu', 'kimlik', 'unknown']);
+const VALID_TYPES = new Set<DocumentType>([
+  'noter',
+  'tapu',
+  'kimlik',
+  'ehliyet',
+  'unknown',
+]);
 
 function parseHint(raw: unknown): DocumentType | undefined {
   if (typeof raw !== 'string' || !raw.trim()) return undefined;

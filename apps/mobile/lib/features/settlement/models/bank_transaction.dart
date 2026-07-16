@@ -48,7 +48,8 @@ class BankTransaction {
             json['transactionAt'] ?? json['transaction_at'],
           ) ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      matchStatus: _parseMatchStatus(json['matchStatus'] ?? json['match_status']),
+      matchStatus:
+          _parseMatchStatus(json['matchStatus'] ?? json['match_status']),
       counterpartyName: json['counterpartyName'] as String? ??
           json['counterparty_name'] as String?,
       description: json['description'] as String?,

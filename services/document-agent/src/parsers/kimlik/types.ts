@@ -17,6 +17,14 @@ export interface KimlikOcrFields {
   /** ISO 8601 tarih (YYYY-MM-DD) */
   dogumTarihi: string | null;
   belgeTuru: KimlikBelgeTuru;
+  /** Ehliyet belge / sürücü belgesi no (alan 5) */
+  ehliyetNo: string | null;
+  /** Sınıf / kategoriler (alan 9), örn. B, A1 */
+  sinif: string | null;
+  /** Veriliş tarihi (4a) ISO */
+  verilisTarihi: string | null;
+  /** Geçerlilik / bitiş tarihi (4b) ISO */
+  bitisTarihi: string | null;
 }
 
 export interface FieldConfidence {
@@ -25,6 +33,10 @@ export interface FieldConfidence {
   soyad: number;
   dogumTarihi: number;
   belgeTuru: number;
+  ehliyetNo: number;
+  sinif: number;
+  verilisTarihi: number;
+  bitisTarihi: number;
 }
 
 export interface KimlikParseResult {
@@ -39,9 +51,11 @@ export interface KimlikParseResult {
 }
 
 export interface KimlikParseOptions {
-  /** LLM çağrısı için opsiyonel sağlayıcı (iskelet) */
+  /** LLM çağrısı için opsiyonel sağlayıcı (kapalı varsayılan) */
   llmExtractor?: (prompt: string, ocrText: string) => Promise<Partial<KimlikOcrFields>>;
   /** Regex yetersizse LLM'e düş */
   preferLlmFallback?: boolean;
   minOverallConfidence?: number;
+  /** İstemci "Ehliyet" seçtiyse belge türünü zorla */
+  forceBelgeTuru?: KimlikBelgeTuru;
 }

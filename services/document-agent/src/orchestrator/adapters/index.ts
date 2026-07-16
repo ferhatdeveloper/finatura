@@ -1,9 +1,8 @@
+import { getDefaultLlmFieldExtractor } from '../../llm/index.js';
 import type { DocumentInput, DocumentType, ParserAdapter } from '../types.js';
 
 /**
  * Parser modülleri başka ajanlara ait (`src/parsers/*`).
- * Dinamik import ile derleme zamanı bağımlılığı kurulmaz;
- * klasör henüz yoksa anlamlı hata döner.
  */
 async function loadParserModule(folder: string): Promise<Record<string, unknown>> {
   const relative = `../../parsers/${folder}/index.js`;
@@ -36,6 +35,7 @@ function pickWarnings(result: Record<string, unknown>): string[] {
   return [];
 }
 
+/** Null alanları da döndür — istemci formu için; UI null’ları gizler. */
 function pickFields(result: Record<string, unknown>): Record<string, unknown> {
   if (result.fields && typeof result.fields === 'object') {
     return asObject(result.fields);
@@ -45,12 +45,14 @@ function pickFields(result: Record<string, unknown>): Record<string, unknown> {
 
 function createLazyAdapter(
   type: Exclude<DocumentType, 'unknown'>,
+  folder: string,
   exportCandidates: string[],
+  defaultOptions?: Record<string, unknown>,
 ): ParserAdapter {
   return {
     type,
     async parse(input: DocumentInput & { ocrText: string }) {
-      const mod = await loadParserModule(type);
+      const mod = await loadParserModule(folder);
       let fn: ((text: string, options?: unknown) => Promise<unknown>) | undefined;
 
       for (const name of exportCandidates) {
@@ -67,11 +69,15 @@ function createLazyAdapter(
 
       if (!fn) {
         throw new Error(
-          `parser_export_missing:${type} — beklenen: ${exportCandidates.join(', ')}`,
+          `parser_export_missing:${folder} — beklenen: ${exportCandidates.join(', ')}`,
         );
       }
 
-      const raw = await fn(input.ocrText, {});
+      const llmExtractor = getDefaultLlmFieldExtractor();
+      const raw = await fn(input.ocrText, {
+        ...defaultOptions,
+        ...(llmExtractor ? { llmExtractor } : {}),
+      });
       const result = asObject(raw);
 
       return {
@@ -83,19 +89,27 @@ function createLazyAdapter(
   };
 }
 
-export const kimlikAdapter = createLazyAdapter('kimlik', [
+export const kimlikAdapter = createLazyAdapter('kimlik', 'kimlik', [
   'parseKimlikOcr',
   'parseKimlik',
   'parse',
 ]);
 
-export const noterAdapter = createLazyAdapter('noter', [
+/** Ehliyet → aynı kimlik parser, belge türü zorla ehliyet. */
+export const ehliyetAdapter = createLazyAdapter(
+  'ehliyet',
+  'kimlik',
+  ['parseKimlikOcr', 'parseKimlik', 'parse'],
+  { forceBelgeTuru: 'ehliyet' },
+);
+
+export const noterAdapter = createLazyAdapter('noter', 'noter', [
   'parseNoterOcr',
   'parseNoter',
   'parse',
 ]);
 
-export const tapuAdapter = createLazyAdapter('tapu', [
+export const tapuAdapter = createLazyAdapter('tapu', 'tapu', [
   'parseTapuOcr',
   'parseTapu',
   'parse',

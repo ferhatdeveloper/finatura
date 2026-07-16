@@ -19,12 +19,21 @@ const TAPU_SIGNALS = [
   /kadastro/i,
 ];
 
+const EHLIYET_SIGNALS = [
+  /ehliyet/i,
+  /s[uü]r[uü]c[uü]\s+belgesi/i,
+  /driving\s+licen[cs]e/i,
+  /\b4d\.?\s*personal\b/i,
+  /(?:^|\n)\s*1\.?\s*surname\b/im,
+  /(?:^|\n)\s*5\.?\s*(?:document|licence|license)\s*no/im,
+];
+
 const KIMLIK_SIGNALS = [
   /t\.?\s*c\.?\s*kimlik/i,
   /n[uü]fus\s+c[uü]zdan/i,
-  /ehliyet/i,
-  /s[uü]r[uü]c[uü]\s+belgesi/i,
   /\bMRZ\b/,
+  /identity\s+card/i,
+  /kimlik\s+kart/i,
   /do[gğ]um\s+tarih/i,
   /soyad[ıi]?/i,
 ];
@@ -40,7 +49,6 @@ function scoreSignals(text: string, patterns: RegExp[]): { score: number; hits: 
 
 /**
  * OCR metninden belge tipini sezgisel (regex sinyal) olarak tahmin eder.
- * LLM tabanlı sınıflandırma ileride eklenebilir.
  */
 export function detectDocumentType(ocrText: string): DocumentTypeDetection {
   const text = (ocrText ?? '').trim();
@@ -50,12 +58,14 @@ export function detectDocumentType(ocrText: string): DocumentTypeDetection {
 
   const noter = scoreSignals(text, NOTER_SIGNALS);
   const tapu = scoreSignals(text, TAPU_SIGNALS);
+  const ehliyet = scoreSignals(text, EHLIYET_SIGNALS);
   const kimlik = scoreSignals(text, KIMLIK_SIGNALS);
 
   const ranked: Array<{ type: DocumentType; score: number; hits: string[] }> = (
     [
       { type: 'noter' as const, score: noter.score, hits: noter.hits },
       { type: 'tapu' as const, score: tapu.score, hits: tapu.hits },
+      { type: 'ehliyet' as const, score: ehliyet.score, hits: ehliyet.hits },
       { type: 'kimlik' as const, score: kimlik.score, hits: kimlik.hits },
     ] satisfies Array<{ type: DocumentType; score: number; hits: string[] }>
   ).sort((a, b) => b.score - a.score);

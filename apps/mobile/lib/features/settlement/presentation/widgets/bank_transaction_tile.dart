@@ -14,7 +14,8 @@ class BankTransactionTile extends StatelessWidget {
   final VoidCallback onTap;
 
   static String _money(double amount) {
-    final fixed = amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
+    final fixed =
+        amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
     return '₺$fixed';
   }
 

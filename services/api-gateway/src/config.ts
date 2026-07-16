@@ -53,7 +53,9 @@ export const config = {
     windowMs: intEnv('RATE_LIMIT_WINDOW_MS', 60_000),
     maxRequests: intEnv('RATE_LIMIT_MAX_REQUESTS', 120),
   },
-  tenantRouterUrl: process.env.TENANT_ROUTER_URL ?? 'http://localhost:3100',
+  // Production compose: http://finatura_router:3100 — localhost yalnızca yerel gelişim
+  tenantRouterUrl:
+    process.env.TENANT_ROUTER_URL ?? 'http://finatura_router:3100',
   tenantRouterTimeoutMs: intEnv('TENANT_ROUTER_TIMEOUT_MS', 10_000),
 } as const;
 
@@ -67,4 +69,4 @@ export function assertConfig(): void {
     );
   }
 }
-
+

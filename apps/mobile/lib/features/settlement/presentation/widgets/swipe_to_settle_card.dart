@@ -25,9 +25,7 @@ class SwipeToSettleCard extends StatelessWidget {
 
     return Dismissible(
       key: ValueKey('settle-${debt.id}'),
-      direction: enabled
-          ? DismissDirection.endToStart
-          : DismissDirection.none,
+      direction: enabled ? DismissDirection.endToStart : DismissDirection.none,
       confirmDismiss: (_) async {
         onSettle();
         // Kart listeden kalkmaz; mahsup ekranda onay banner’ı ile gösterilir.
