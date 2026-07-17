@@ -6,6 +6,8 @@ export interface AccessTokenClaims {
   tenantSlug: string;
   /** owner | admin | member | viewer | accountant */
   role: string;
+  /** SaaS platform superadmin */
+  isPlatformAdmin?: boolean;
   typ: 'access';
 }
 
@@ -22,6 +24,7 @@ export interface AuthUser {
   tenantId: string;
   tenantSlug: string;
   role: string;
+  isPlatformAdmin?: boolean;
 }
 
 /** Tenant context — gateway seviyesinde; DB pool tenant-router'da kalır */

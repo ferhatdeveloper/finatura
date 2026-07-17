@@ -12,12 +12,14 @@ function detectProvider(): LlmProviderName | null {
   const explicit = process.env.LLM_PROVIDER?.trim().toLowerCase();
   if (
     explicit === 'openai' ||
+    explicit === 'openrouter' ||
     explicit === 'anthropic' ||
     explicit === 'gemini' ||
     explicit === 'openai_compatible'
   ) {
     return explicit;
   }
+  if (firstEnv('OPENROUTER_API_KEY')) return 'openrouter';
   if (firstEnv('OPENAI_API_KEY')) return 'openai';
   if (firstEnv('ANTHROPIC_API_KEY')) return 'anthropic';
   if (firstEnv('GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_AI_API_KEY')) {
@@ -36,6 +38,7 @@ export function resolveLlmConfig(): LlmConfig | null {
 
   const apiKey =
     firstEnv(
+      'OPENROUTER_API_KEY',
       'LLM_API_KEY',
       'OPENAI_API_KEY',
       'ANTHROPIC_API_KEY',
@@ -52,15 +55,61 @@ export function resolveLlmConfig(): LlmConfig | null {
       ? 'claude-3-5-haiku-latest'
       : provider === 'gemini'
         ? 'gemini-2.0-flash'
-        : 'gpt-4o-mini');
+        : provider === 'openrouter'
+          ? 'openai/gpt-4o-mini'
+          : 'gpt-4o-mini');
 
   const baseUrl =
     firstEnv('LLM_BASE_URL') ??
-    (provider === 'openai' || provider === 'openai_compatible'
-      ? 'https://api.openai.com/v1'
-      : undefined);
+    (provider === 'openrouter'
+      ? 'https://openrouter.ai/api/v1'
+      : provider === 'openai' || provider === 'openai_compatible'
+        ? 'https://api.openai.com/v1'
+        : undefined);
 
-  return { provider, apiKey, model, baseUrl };
+  return {
+    provider,
+    apiKey,
+    model,
+    baseUrl,
+    httpReferer: firstEnv('LLM_HTTP_REFERER') ?? 'https://finatura.app',
+    appTitle: firstEnv('LLM_APP_TITLE') ?? 'Finatura',
+  };
+}
+
+/** Gateway / admin panelden gelen config ile birleştir (env öncelikli). */
+export function mergeLlmConfig(
+  remote: Partial<{
+    enabled: boolean;
+    provider: string;
+    baseUrl: string;
+    model: string;
+    apiKey: string;
+    httpReferer: string;
+    appTitle: string;
+  }> | null,
+): LlmConfig | null {
+  const fromEnv = resolveLlmConfig();
+  if (fromEnv) return fromEnv;
+  if (!remote?.apiKey?.trim()) return null;
+
+  const provider = (remote.provider?.toLowerCase() ||
+    'openrouter') as LlmProviderName;
+  return {
+    provider:
+      provider === 'openai' ||
+      provider === 'openrouter' ||
+      provider === 'anthropic' ||
+      provider === 'gemini' ||
+      provider === 'openai_compatible'
+        ? provider
+        : 'openrouter',
+    apiKey: remote.apiKey.trim(),
+    model: remote.model?.trim() || 'openai/gpt-4o-mini',
+    baseUrl: remote.baseUrl?.trim() || 'https://openrouter.ai/api/v1',
+    httpReferer: remote.httpReferer?.trim() || 'https://finatura.app',
+    appTitle: remote.appTitle?.trim() || 'Finatura',
+  };
 }
 
 function extractJsonObject(text: string): Record<string, unknown> {
@@ -83,13 +132,26 @@ async function callOpenAiCompatible(
   cfg: LlmConfig,
   prompt: string,
 ): Promise<string> {
-  const base = (cfg.baseUrl ?? 'https://api.openai.com/v1').replace(/\/$/, '');
+  const base = (
+    cfg.baseUrl ??
+    (cfg.provider === 'openrouter'
+      ? 'https://openrouter.ai/api/v1'
+      : 'https://api.openai.com/v1')
+  ).replace(/\/$/, '');
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${cfg.apiKey}`,
+    'Content-Type': 'application/json',
+  };
+
+  if (cfg.provider === 'openrouter' || base.includes('openrouter.ai')) {
+    headers['HTTP-Referer'] = cfg.httpReferer ?? 'https://finatura.app';
+    headers['X-Title'] = cfg.appTitle ?? 'Finatura';
+  }
+
   const res = await fetch(`${base}/chat/completions`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       model: cfg.model,
       temperature: 0,
@@ -106,13 +168,15 @@ async function callOpenAiCompatible(
   });
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`OpenAI HTTP ${res.status}: ${body.slice(0, 240)}`);
+    throw new Error(
+      `${cfg.provider === 'openrouter' ? 'OpenRouter' : 'OpenAI'} HTTP ${res.status}: ${body.slice(0, 240)}`,
+    );
   }
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
   };
   const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('OpenAI boş içerik');
+  if (!content) throw new Error('LLM boş içerik');
   return content;
 }
 
@@ -180,6 +244,7 @@ async function callLlm(cfg: LlmConfig, prompt: string): Promise<string> {
     case 'gemini':
       return callGemini(cfg, prompt);
     case 'openai':
+    case 'openrouter':
     case 'openai_compatible':
       return callOpenAiCompatible(cfg, prompt);
     default:
@@ -187,13 +252,18 @@ async function callLlm(cfg: LlmConfig, prompt: string): Promise<string> {
   }
 }
 
-/** Config varsa ve LLM_ENABLED=true ise JSON alan çıkarıcı; aksi halde null (yerel OCR). */
+function isLlmEnabledFlag(): boolean {
+  return (
+    process.env.LLM_ENABLED?.trim().toLowerCase() === 'true' ||
+    process.env.LLM_ENABLED?.trim() === '1'
+  );
+}
+
+/** Config varsa ve LLM etkinse JSON alan çıkarıcı. */
 export function createLlmFieldExtractor(
   cfg: LlmConfig | null = resolveLlmConfig(),
+  enabled: boolean = isLlmEnabledFlag(),
 ): LlmFieldExtractor | null {
-  const enabled =
-    process.env.LLM_ENABLED?.trim().toLowerCase() === 'true' ||
-    process.env.LLM_ENABLED?.trim() === '1';
   if (!enabled || !cfg) return null;
   return async (prompt: string, _ocrText: string) => {
     const raw = await callLlm(cfg, prompt);

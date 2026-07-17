@@ -6,12 +6,21 @@ export type LlmFieldExtractor = (
   ocrText: string,
 ) => Promise<Record<string, unknown>>;
 
-export type LlmProviderName = 'openai' | 'anthropic' | 'gemini' | 'openai_compatible';
+export type LlmProviderName =
+  | 'openai'
+  | 'openrouter'
+  | 'anthropic'
+  | 'gemini'
+  | 'openai_compatible';
 
 export interface LlmConfig {
   provider: LlmProviderName;
   apiKey: string;
   model: string;
-  /** OpenAI-compatible base (örn. https://api.openai.com/v1 veya OpenRouter) */
+  /** OpenAI-compatible base (OpenAI veya OpenRouter) */
   baseUrl?: string;
+  /** OpenRouter: HTTP-Referer */
+  httpReferer?: string;
+  /** OpenRouter: X-Title */
+  appTitle?: string;
 }

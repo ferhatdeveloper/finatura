@@ -4,6 +4,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimitPlaceholder } from './middleware/rateLimit.js';
 import { tenantContext } from './middleware/tenantContext.js';
 import { createTenantRouterProxy } from './proxy/tenantRouterProxy.js';
+import { adminSettingsRouter } from './routes/adminSettings.js';
 import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
 import { membershipsRouter } from './routes/memberships.js';
@@ -48,7 +49,7 @@ export function createApp(): express.Application {
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader(
         'Access-Control-Allow-Headers',
-        'Authorization, Content-Type, X-Tenant-ID',
+        'Authorization, Content-Type, X-Tenant-ID, X-Internal-Token',
       );
       res.setHeader(
         'Access-Control-Allow-Methods',
@@ -72,6 +73,9 @@ export function createApp(): express.Application {
 
   /** Üyelik / mali müşavir davet & bağlama */
   app.use(membershipsRouter);
+
+  /** Platform superadmin — sistem ayarları / OpenRouter LLM */
+  app.use('/v1/admin', adminSettingsRouter);
 
   /**
    * Kur/altın — gateway üzerinde (tenant-router gerekmez).

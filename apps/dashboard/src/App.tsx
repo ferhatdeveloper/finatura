@@ -7,6 +7,8 @@ import { TaraPage } from "./pages/TaraPage";
 import { CariPage } from "./pages/CariPage";
 import { BankaMutabakatPage } from "./pages/BankaMutabakatPage";
 import { EFaturaPage } from "./pages/EFaturaPage";
+import { RaporlarPage } from "./pages/RaporlarPage";
+import { SistemAyarlariPage } from "./pages/SistemAyarlariPage";
 
 export function App() {
   return (
@@ -24,6 +26,8 @@ export function App() {
         <Route path="cari" element={<CariPage />} />
         <Route path="banka-mutabakat" element={<BankaMutabakatPage />} />
         <Route path="e-fatura" element={<EFaturaPage />} />
+        <Route path="raporlar" element={<RaporlarPage />} />
+        <Route path="sistem" element={<SistemAyarlariPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

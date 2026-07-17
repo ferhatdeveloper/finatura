@@ -21,6 +21,8 @@ export interface AuthUserRecord {
   tenantId: string;
   tenantSlug: string;
   role: string;
+  /** Platform superadmin (sistem ayarları) */
+  isPlatformAdmin?: boolean;
 }
 
 export interface UserRepository {

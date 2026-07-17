@@ -31,6 +31,7 @@ function issueAuthTokens(user: {
   tenantId: string;
   tenantSlug: string;
   role: string;
+  isPlatformAdmin?: boolean;
 }) {
   return issueTokenPair({
     sub: user.userId,
@@ -38,6 +39,7 @@ function issueAuthTokens(user: {
     tenantId: user.tenantId,
     tenantSlug: user.tenantSlug,
     role: user.role,
+    isPlatformAdmin: Boolean(user.isPlatformAdmin),
   });
 }
 
@@ -82,6 +84,7 @@ authRouter.post('/auth/login', async (req, res, next) => {
         tenantId: user.tenantId,
         tenantSlug: user.tenantSlug,
         role: user.role,
+        isPlatformAdmin: Boolean(user.isPlatformAdmin),
       },
       ...tokens,
     });

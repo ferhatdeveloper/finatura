@@ -152,6 +152,7 @@ export class CentralUserRepository implements UserRepository {
       tenantId: String(row.tenant_id),
       tenantSlug: row.tenant_slug,
       role: row.role,
+      isPlatformAdmin: Boolean(row.is_platform_admin),
     };
   }
 }
@@ -188,6 +189,7 @@ interface UserMembershipRow {
   tenant_id: string;
   tenant_slug: string;
   role: string;
+  is_platform_admin?: boolean;
 }
 
 const ROLE_ORDER = `CASE m.role::text
@@ -209,6 +211,7 @@ SELECT
   u.email,
   u.password_hash,
   u.full_name,
+  coalesce(u.is_platform_admin, false) AS is_platform_admin,
   t.id            AS tenant_id,
   t.slug          AS tenant_slug,
   m.role

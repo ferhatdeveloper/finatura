@@ -16,6 +16,10 @@ type StubRecord = AuthUserRecord & {
  */
 export class StubUserRepository implements UserRepository {
   private listStubs(): StubRecord[] {
+    const platformAdmin =
+      process.env.AUTH_STUB_PLATFORM_ADMIN === 'true' ||
+      process.env.AUTH_STUB_PLATFORM_ADMIN === '1';
+
     const owner: StubRecord = {
       userId: config.authStub.userId,
       email: config.authStub.email,
@@ -25,6 +29,7 @@ export class StubUserRepository implements UserRepository {
       role: config.authStub.role,
       password: config.authStub.password,
       firmaKodu: config.authStub.firmaKodu,
+      isPlatformAdmin: platformAdmin,
     };
 
     const accountant: StubRecord = {
@@ -42,9 +47,24 @@ export class StubUserRepository implements UserRepository {
         process.env.AUTH_STUB_ACCOUNTANT_FIRMA_KODU ??
         process.env.AUTH_STUB_ACCOUNTANT_CODE ??
         'MM-DEMO',
+      isPlatformAdmin: false,
     };
 
-    return [owner, accountant];
+    const superadmin: StubRecord = {
+      userId:
+        process.env.AUTH_STUB_SUPERADMIN_USER_ID ??
+        '00000000-0000-4000-8000-0000000000sa',
+      email: process.env.AUTH_STUB_SUPERADMIN_EMAIL ?? 'admin@finatura.app',
+      displayName: process.env.AUTH_STUB_SUPERADMIN_NAME ?? 'Finatura Superadmin',
+      tenantId: config.authStub.tenantId,
+      tenantSlug: config.authStub.tenantSlug,
+      role: 'admin',
+      password: process.env.AUTH_STUB_SUPERADMIN_PASSWORD ?? 'admin1234',
+      firmaKodu: config.authStub.firmaKodu,
+      isPlatformAdmin: true,
+    };
+
+    return [owner, accountant, superadmin];
   }
 
   async authenticate(
@@ -115,6 +135,7 @@ export class StubUserRepository implements UserRepository {
       tenantId: user.tenantId,
       tenantSlug: user.tenantSlug,
       role: user.role,
+      isPlatformAdmin: Boolean(user.isPlatformAdmin),
     };
   }
 }

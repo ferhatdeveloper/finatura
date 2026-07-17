@@ -26,6 +26,14 @@ export const endpoints = {
   bankTransactions: "/v1/tenant/bank-transactions",
   /** GET — e-fatura / fatura taslakları */
   invoices: "/v1/tenant/invoices",
+  /** Superadmin sistem ayarları */
+  adminSettings: "/v1/admin/settings",
+  /** Raporlar */
+  reportsOverview: "/v1/tenant/reports/overview",
+  reportsInvoices: "/v1/tenant/reports/invoices",
+  reportsBank: "/v1/tenant/reports/bank-reconciliation",
+  reportsVeresiye: "/v1/tenant/reports/veresiye-aging",
+  reportsKdv: "/v1/tenant/reports/kdv",
   /** POST multipart — document-agent */
   documentsAnalyze: "/api/v1/documents/analyze",
   documentsAnalyzeText: "/api/v1/documents/analyze-text",

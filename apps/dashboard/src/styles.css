@@ -310,6 +310,47 @@ code {
   cursor: not-allowed;
 }
 
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+}
+
+.form-grid .panel-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.15rem;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.form-ok {
+  color: var(--ok);
+  background: var(--ok-bg);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius);
+}
+
+.btn-ghost {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink-mid);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+}
+
+.btn-ghost:hover {
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
 .form-error {
   margin: 0;
   padding: 0.65rem 0.75rem;

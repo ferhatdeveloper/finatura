@@ -1,8 +1,40 @@
 import type { NextFunction, Request, Response } from 'express';
 import { verifyAccessToken } from '../auth/jwt.js';
 
+/** Bearer varsa req.auth doldur; yoksa devam (internal token senaryosu). */
+export function optionalAuth(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): void {
+  const header = req.header('authorization');
+  if (!header || !header.toLowerCase().startsWith('bearer ')) {
+    next();
+    return;
+  }
+  const token = header.slice('bearer '.length).trim();
+  if (!token) {
+    next();
+    return;
+  }
+  try {
+    const claims = verifyAccessToken(token);
+    req.auth = {
+      userId: claims.sub,
+      email: claims.email,
+      tenantId: claims.tenantId,
+      tenantSlug: claims.tenantSlug,
+      role: claims.role ?? 'member',
+      isPlatformAdmin: Boolean(claims.isPlatformAdmin),
+    };
+  } catch {
+    // optional — sessiz geç
+  }
+  next();
+}
+
 /**
- * Authorization: Bearer <jwt> doğrulama stub'ı.
+ * Authorization: Bearer <jwt> doğrulama.
  * Başarılıysa req.auth doldurulur.
  */
 export function requireAuth(
@@ -36,6 +68,7 @@ export function requireAuth(
       tenantId: claims.tenantId,
       tenantSlug: claims.tenantSlug,
       role: claims.role ?? 'member',
+      isPlatformAdmin: Boolean(claims.isPlatformAdmin),
     };
     next();
   } catch (err) {

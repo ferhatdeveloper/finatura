@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health.js';
 import { invoicesRouter } from './routes/invoices.js';
 import { manualVeresiyeRouter } from './routes/manualVeresiye.js';
 import { ratesRouter } from './routes/rates.js';
+import { reportsRouter } from './routes/reports.js';
 import { settlementsRouter } from './routes/settlements.js';
 import { tenantPoolCache } from './tenant/poolCache.js';
 import './types.js';
@@ -44,6 +45,7 @@ app.get('/api/tenant/ping', tenantContext, async (req, res) => {
 /** Banka hareketleri + matching önerileri + mahsup (gateway /v1/tenant/*). */
 app.use('/api/tenant', bankTransactionsRouter);
 app.use('/api/tenant', invoicesRouter);
+app.use('/api/tenant', reportsRouter);
 app.use('/api/tenant', ratesRouter);
 app.use('/api/tenant', settlementsRouter);
 app.use('/api/tenant', manualVeresiyeRouter);

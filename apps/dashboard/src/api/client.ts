@@ -9,6 +9,7 @@ export interface SessionUser {
   tenantId: string;
   tenantSlug: string;
   role: string;
+  isPlatformAdmin?: boolean;
 }
 
 export interface Session {
