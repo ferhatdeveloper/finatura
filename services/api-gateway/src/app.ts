@@ -5,6 +5,7 @@ import { rateLimitPlaceholder } from './middleware/rateLimit.js';
 import { tenantContext } from './middleware/tenantContext.js';
 import { createTenantRouterProxy } from './proxy/tenantRouterProxy.js';
 import { adminSettingsRouter } from './routes/adminSettings.js';
+import { adminTenantsRouter } from './routes/adminTenants.js';
 import { authRouter } from './routes/auth.js';
 import { healthRouter } from './routes/health.js';
 import { membershipsRouter } from './routes/memberships.js';
@@ -74,8 +75,9 @@ export function createApp(): express.Application {
   /** Üyelik / mali müşavir davet & bağlama */
   app.use(membershipsRouter);
 
-  /** Platform superadmin — sistem ayarları / OpenRouter LLM */
+  /** Platform superadmin — sistem ayarları / OpenRouter LLM / tenant + kontör */
   app.use('/v1/admin', adminSettingsRouter);
+  app.use('/v1/admin', adminTenantsRouter);
 
   /**
    * Kur/altın — gateway üzerinde (tenant-router gerekmez).

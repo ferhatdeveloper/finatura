@@ -24,7 +24,11 @@ export function Layout() {
   }
 
   const navItems: NavItem[] = isPlatformAdmin
-    ? [...NAV, { to: "/sistem", label: "Sistem ayarları" }]
+    ? [
+        ...NAV,
+        { to: "/yonetim", label: "Tenant / Kontör" },
+        { to: "/sistem", label: "Sistem ayarları" },
+      ]
     : NAV;
 
   return (

@@ -9,6 +9,7 @@ import { BankaMutabakatPage } from "./pages/BankaMutabakatPage";
 import { EFaturaPage } from "./pages/EFaturaPage";
 import { RaporlarPage } from "./pages/RaporlarPage";
 import { SistemAyarlariPage } from "./pages/SistemAyarlariPage";
+import { TenantYonetimiPage } from "./pages/TenantYonetimiPage";
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
         <Route path="e-fatura" element={<EFaturaPage />} />
         <Route path="raporlar" element={<RaporlarPage />} />
         <Route path="sistem" element={<SistemAyarlariPage />} />
+        <Route path="yonetim" element={<TenantYonetimiPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -28,6 +28,8 @@ export const endpoints = {
   invoices: "/v1/tenant/invoices",
   /** Superadmin sistem ayarları */
   adminSettings: "/v1/admin/settings",
+  /** Superadmin tenant + kontör */
+  adminTenants: "/v1/admin/tenants",
   /** Raporlar */
   reportsOverview: "/v1/tenant/reports/overview",
   reportsInvoices: "/v1/tenant/reports/invoices",
