@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Finatura — uzak finatura_pg üzerinde central SQL uygula
 #
-# Yalnızca VPS'te (Docker erişimi olan kullanıcı) çalıştırın:
+# KURAL (.cursor/rules/finatura-sql-execution.mdc):
+#   SQL’ler agent tarafından Cursor/Cloud ortamından çalıştırılır.
+#   Bu script VPS’te veya SSH üzerinden agent’ın çağırması içindir;
+#   kullanıcıya “manuel uygula” diye bırakma.
+#
+# Kullanım:
 #   sudo bash scripts/vps-apply-central-sql.sh
-# veya:
 #   sudo bash scripts/vps-apply-central-sql.sh 09   # yalnızca 09_*.sql
 #
 # Güvenlik:
