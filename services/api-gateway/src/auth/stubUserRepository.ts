@@ -47,7 +47,7 @@ export class StubUserRepository implements UserRepository {
     const accountant: StubRecord = {
       userId:
         process.env.AUTH_STUB_ACCOUNTANT_USER_ID ??
-        '00000000-0000-4000-8000-0000000000mm',
+        '00000000-0000-4000-8000-000000000002',
       email: process.env.AUTH_STUB_ACCOUNTANT_EMAIL ?? 'mm@finatura.app',
       displayName:
         process.env.AUTH_STUB_ACCOUNTANT_DISPLAY_NAME ?? 'Ayşe Yılmaz, SMMM',
@@ -68,7 +68,7 @@ export class StubUserRepository implements UserRepository {
     const superadmin: StubRecord = {
       userId:
         process.env.AUTH_STUB_SUPERADMIN_USER_ID ??
-        '00000000-0000-4000-8000-0000000000sa',
+        '00000000-0000-4000-8000-000000000003',
       email: process.env.AUTH_STUB_SUPERADMIN_EMAIL ?? 'admin@finatura.app',
       displayName: process.env.AUTH_STUB_SUPERADMIN_NAME ?? 'Finatura Superadmin',
       tenantId: config.authStub.tenantId,

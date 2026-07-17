@@ -8,7 +8,8 @@ alwaysApply: true
 1. `database/central/*.sql` (ve tenant şema SQL’leri) değişince veya yeni migration eklenince agent **bu Cursor / Cloud Agent ortamından** uzak `finatura_pg` üzerinde uygular. “Dokploy’da sen çalıştır” veya “kullanıcı manuel uygulasın” ile işi bitmiş sayma.
 2. Hedef yalnızca **Finatura** DB’sidir: konteyner/servis `finatura_pg`, volume `finatura_pg_data`, database `finatura_central`. **Asla** RetailEX (`saas_postgres` / `:5432`) veya Kargo (`kargomkapinda_*`) üzerinde SQL çalıştırma.
 3. Uygulama yolu (öncelik sırası):
-   - Ortamda `CENTRAL_DATABASE_URL` veya VPS SSH varsa: `psql` / `scripts/vps-apply-central-sql.sh` ile uygula ve doğrula (`users` kolonları, seed satırları).
-   - SSH veya DB credential yoksa: erişimi talep et; SQL dosyasını commit etmek yeterli değildir — uygulama adımı açıkça bekleyen iş olarak kalır.
+   - Uzak `finatura_pg` erişimi varsa: `psql` / `scripts/vps-apply-central-sql.sh` veya dump restore.
+   - **Erişilemiyorsa (zorunlu fallback):** bu ortamda yerel PostgreSQL’de tüm `database/central/*.sql` uygula → `bash scripts/build-central-pg-dump.sh` ile `database/central/dumps/finatura_central_full.sql` üret ve commit et; uzak için `scripts/vps-restore-central-dump.sh`. “SQL’i sadece yazdım” yetmez — dump üretilmiş olmalı.
+   - SSH/credential hâlâ yoksa erişimi talep et; dump + restore script hazır bekler.
 4. Init (`docker-entrypoint-initdb.d`) yalnızca **ilk volume** oluşumunda çalışır. Mevcut `finatura_pg_data` için yeni numaralı SQL’leri agent buradan uygular.
 5. SQL uygulandıktan sonra mümkünse `https://api.finatura.app/ready` ile `centralDb` / `AUTH_PROVIDER=central` durumunu kontrol et; stub’da kaldıysa API env’ini de bağla.

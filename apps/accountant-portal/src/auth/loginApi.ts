@@ -14,7 +14,7 @@ export const MOCK_ACCOUNTANT = {
 } as const;
 
 const MOCK_USER: AuthUser = {
-  id: "00000000-0000-4000-8000-0000000000mm",
+  id: "00000000-0000-4000-8000-000000000002",
   email: MOCK_ACCOUNTANT.email,
   displayName: "Ayşe Yılmaz, SMMM",
   firmaUnvan: "Örnek Oto Galeri Ltd. Şti.",
