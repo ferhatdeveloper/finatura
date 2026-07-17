@@ -1,0 +1,58 @@
+# Finatura Central PostgreSQL — Dokploy (RetailEX / Kargo ile ÇAKIŞMAZ)
+#
+# Uyum kuralları:
+#   - Servis adı: finatura_pg          (≠ saas_postgres, ≠ kargomkapinda_*)
+#   - Volume:     finatura_pg_data     (≠ saas_postgres_data, ≠ kargomkapinda_pg_data)
+#   - Ağ:         berqenas_net
+#   - Host port:  YOK (RetailEX :5432 / Kargo :5433 korunur)
+#   - Container içi port: 5432 (yalnızca berqenas_net üzerinden)
+#
+# Dokploy ayarları:
+#   Type: Docker Compose
+#   Repo: ferhatdeveloper/finatura · branch: main
+#   Compose Path: ./docker-compose.pg.yml
+#   Environment (zorunlu öneri):
+#     POSTGRES_PASSWORD=<güçlü-şifre>
+#   Domain YOK — yalnızca internal DB
+#
+# Bağlantı (api-gateway / diğer finatura_* servisleri):
+#   CENTRAL_DATABASE_URL=postgresql://finatura:<şifre>@finatura_pg:5432/finatura_central
+#
+# Init: database/central/*.sql (yalnızca volume ilk oluştuğunda)
+
+services:
+  finatura_pg:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-finatura_central}
+      POSTGRES_USER: ${POSTGRES_USER:-finatura}
+      # Dokploy Environment’da mutlaka override edin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-finatura_change_me_in_dokploy}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    expose:
+      - "5432"
+    volumes:
+      - finatura_pg_data:/var/lib/postgresql/data
+      - ./database/central:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - berqenas_net
+
+volumes:
+  finatura_pg_data:
+    name: finatura_pg_data
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net

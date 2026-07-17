@@ -16,7 +16,8 @@ Bu dosya **yapılacaklar** odaklıdır. Ürün fazları için bkz. [`FINATURA_RO
 | `finatura-web` | `./docker-compose.dokploy.yml` | `finatura.app`, `www.finatura.app` | 80 | `main` | ✅ done |
 | `finatura-app` | `./docker-compose.app.yml` | `app.finatura.app`, `login.finatura.app` | 80 | `main` | ✅ done · `API_BASE_URL` build-arg |
 | `finatura-mm` | `./docker-compose.mm.yml` | `mm.finatura.app` | 80 | `main` | ✅ done · `VITE_API_GATEWAY_URL` build-arg |
-| `finatura-api` | `./docker-compose.api.yml` | `api.finatura.app` | 3000 | `main` | ✅ done (stub) |
+| `finatura-pg` | `./docker-compose.pg.yml` | — (internal) | 5432 expose only | `main` | ⬜ deploy · volume `finatura_pg_data` |
+| `finatura-api` | `./docker-compose.api.yml` | `api.finatura.app` | 3000 | `main` | ✅ done · `AUTH_PROVIDER=central` + `finatura_pg` |
 
 | Host | Public DNS A | Traefik (Host → IP) | Let's Encrypt |
 |------|--------------|---------------------|---------------|
@@ -85,11 +86,14 @@ API stub ayakta (`AUTH_PROVIDER=stub`, Postgres yok).
 
 ### 4.1 Stub → Central auth
 
-- [ ] Dokploy’da Finatura-only Postgres compose (`finatura_pg`, volume `finatura_pg_data`, `berqenas_net`, **host port yok**)
-- [ ] Init: `database/central/*.sql`
-- [ ] `finatura-api` env: `AUTH_PROVIDER=central`, `CENTRAL_DATABASE_URL=postgres://…@finatura_pg:5432/finatura_central`
-- [ ] Güçlü `JWT_SECRET` rotate; stub şifreleri kaldır
-- [ ] `/ready` tenant-router olmadan degraded kabul / veya router ekle
+- [x] Compose: `./docker-compose.pg.yml` (`finatura_pg`, volume `finatura_pg_data`, `berqenas_net`, **host port yok**)
+- [x] Init: `database/central/*.sql` (+ `08_seed_demo.sql`)
+- [x] `finatura-api` varsayılan: `AUTH_PROVIDER=central`, `CENTRAL_DATABASE_URL=…@finatura_pg:5432/finatura_central`
+- [ ] Dokploy’da **yeni Application** oluştur: Compose Path = `./docker-compose.pg.yml` · Domain yok · env `POSTGRES_PASSWORD`
+- [ ] `finatura-api` env’de aynı `POSTGRES_PASSWORD` / tam `CENTRAL_DATABASE_URL` + güçlü `JWT_SECRET`
+- [ ] Redeploy sırası: önce `finatura-pg` (healthy), sonra `finatura-api`
+- [ ] `/ready` → `centralDb: true` doğrula
+- [ ] Stub şifreleri production’da değiştir / kaldır
 
 ### 4.2 Tenant-router + ajanlar (sonraki)
 
@@ -135,6 +139,7 @@ API stub ayakta (`AUTH_PROVIDER=stub`, Postgres yok).
 | `docker-compose.dokploy.yml` | Marketing production |
 | `docker-compose.app.yml` | Flutter Web production |
 | `docker-compose.mm.yml` | Mali müşavir production |
-| `docker-compose.api.yml` | API gateway stub production |
+| `docker-compose.pg.yml` | Central Postgres (`finatura_pg` / `finatura_pg_data`) |
+| `docker-compose.api.yml` | API gateway + central DB |
 | `docker-compose.*.local.yml` | Yerel host port override |
 | `docker-compose.yml` | Yerel PG `:5440` / `:5441` |

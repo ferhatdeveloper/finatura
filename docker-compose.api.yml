@@ -2,8 +2,16 @@
 #
 #   - Ağ: berqenas_net
 #   - Servis: finatura_api (host port YOK — :3000 yalnızca internal)
-#   - AUTH_PROVIDER=stub → Postgres yok
+#   - DB: finatura_pg (docker-compose.pg.yml) — asla saas_postgres / kargomkapinda_*
 #   - Domains → finatura_api · port 3000 · api.finatura.app
+#
+# Önkoşul: docker-compose.pg.yml deploy edilmiş olmalı (aynı berqenas_net).
+#
+# Dokploy Environment (önerilen):
+#   POSTGRES_PASSWORD=<pg ile aynı>
+#   JWT_SECRET=<güçlü-32+>
+#   AUTH_PROVIDER=central
+#   CENTRAL_DATABASE_URL=postgresql://finatura:<şifre>@finatura_pg:5432/finatura_central
 #
 # Yerel: docker compose -f docker-compose.api.yml -f docker-compose.api.local.yml up -d --build
 
@@ -19,7 +27,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
-      AUTH_PROVIDER: ${AUTH_PROVIDER:-stub}
+      # Central DB (finatura_pg). Stub için AUTH_PROVIDER=stub
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-central}
+      CENTRAL_DATABASE_URL: ${CENTRAL_DATABASE_URL:-postgresql://finatura:${POSTGRES_PASSWORD:-finatura_change_me_in_dokploy}@finatura_pg:5432/finatura_central}
       JWT_SECRET: ${JWT_SECRET:-finatura-prod-change-me-min-32-chars!!}
       JWT_ISSUER: ${JWT_ISSUER:-finatura.api-gateway}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-finatura.app}
@@ -28,9 +38,10 @@ services:
       AUTH_STUB_FIRMA_KODU: ${AUTH_STUB_FIRMA_KODU:-DEMO-GALERI}
       AUTH_STUB_ROLE: ${AUTH_STUB_ROLE:-owner}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://finatura.app,https://www.finatura.app,https://app.finatura.app,https://login.finatura.app,https://mm.finatura.app}
-      # Docker/Dokploy internal DNS — asla 127.0.0.1 kullanma (konteyner içi loopback)
+      # Docker/Dokploy internal DNS — asla 127.0.0.1 kullanma
       TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://finatura_router:3100}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
       interval: 30s
