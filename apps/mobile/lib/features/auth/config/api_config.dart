@@ -24,6 +24,9 @@ class ApiConfig {
   /// Gateway stub / form ön doldurma (istemci mock değil).
   static const String demoEmail = 'demo@finatura.app';
   static const String demoPassword = 'demo1234';
+  static const String demoPhone = '5551112233';
+  static const String demoTckn = '10000000146';
+  static const String demoVergiNo = '1234567890';
   static const String demoFirmaKodu = 'DEMO-GALERI';
 
   static String get loginUrl => '$baseUrl/auth/login';

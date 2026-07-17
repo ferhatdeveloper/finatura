@@ -23,9 +23,12 @@ export interface AuthTokens {
 }
 
 export interface LoginRequest {
-  email: string;
+  /** E-posta | telefon | TCKN | vergi no — tek kullanıcı adı alanı */
+  identifier: string;
   password: string;
-  /** Mali müşavir davet kodu */
+  /** @deprecated Geriye uyum — identifier kullanın */
+  email?: string;
+  /** Mali müşavir davet kodu (opsiyonel) */
   maliMusavirKodu?: string;
   /** Firma / tenant davet kodu — gateway sözleşmesi: firmaKodu */
   firmaKodu?: string;

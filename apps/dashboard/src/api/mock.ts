@@ -66,23 +66,46 @@ export interface AnalyzeResult {
 export const MOCK_DEMO = {
   email: "demo@finatura.app",
   password: "demo1234",
+  phone: "5551112233",
+  tckn: "10000000146",
+  vergiNo: "1234567890",
   firmaKodu: "ornek",
 } as const;
 
-export function mockLogin(
-  email: string,
-  password: string,
-  firmaKodu: string,
-): SessionUser {
-  const okEmail = email.trim().toLowerCase() === MOCK_DEMO.email;
-  const okPass = password === MOCK_DEMO.password;
-  const okFirm =
-    firmaKodu.trim().toLowerCase() === MOCK_DEMO.firmaKodu ||
-    firmaKodu.trim().toLowerCase() === "demo";
+function digitsOnly(v: string): string {
+  return v.replace(/\D/g, "");
+}
 
-  if (!okEmail || !okPass || !okFirm) {
+function normalizePhone(v: string): string {
+  let d = digitsOnly(v);
+  if (d.startsWith("90") && d.length === 12) d = d.slice(2);
+  if (d.startsWith("0") && d.length === 11) d = d.slice(1);
+  return d;
+}
+
+export function mockLogin(
+  identifier: string,
+  password: string,
+  firmaKodu?: string,
+): SessionUser {
+  const raw = identifier.trim().toLowerCase();
+  const phone = normalizePhone(identifier);
+  const okId =
+    raw === MOCK_DEMO.email ||
+    phone === MOCK_DEMO.phone ||
+    digitsOnly(identifier) === MOCK_DEMO.tckn ||
+    digitsOnly(identifier) === MOCK_DEMO.vergiNo;
+  const okPass = password === MOCK_DEMO.password;
+  const firm = (firmaKodu ?? "").trim().toLowerCase();
+  const okFirm =
+    !firm ||
+    firm === MOCK_DEMO.firmaKodu ||
+    firm === "demo" ||
+    firm === "demo-galeri";
+
+  if (!okId || !okPass || !okFirm) {
     throw new Error(
-      "E-posta, şifre veya firma kodu hatalı (demo: demo@finatura.app / demo1234 / ornek)",
+      "Kullanıcı adı veya şifre hatalı (demo: e-posta / telefon / TCKN / vergi + demo1234)",
     );
   }
 

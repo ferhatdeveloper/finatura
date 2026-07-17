@@ -12,29 +12,19 @@ export function Giris() {
     (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
     "/";
 
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [maliMusavirKodu, setMaliMusavirKodu] = useState("");
-  const [firmaKodu, setFirmaKodu] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!maliMusavirKodu.trim() && !firmaKodu.trim()) {
-      setError("Mali müşavir kodu veya firma kodundan en az birini girin.");
-      return;
-    }
-
     setBusy(true);
     try {
       const session = await login({
-        email,
+        identifier,
         password,
-        maliMusavirKodu: maliMusavirKodu.trim() || undefined,
-        firmaKodu: firmaKodu.trim() || undefined,
       });
 
       if (session.user.role.toLowerCase() !== "accountant") {
@@ -61,15 +51,16 @@ export function Giris() {
         <p className="login-sub">Mali müşavir girişi</p>
         <form className="login-form" onSubmit={(e) => void onSubmit(e)}>
           <div className="field">
-            <label htmlFor="email">E-posta</label>
+            <label htmlFor="identifier">Kullanıcı adı</label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="identifier"
+              name="identifier"
+              type="text"
               autoComplete="username"
               required
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              placeholder="e-posta / telefon / TCKN / vergi no"
+              value={identifier}
+              onChange={(ev) => setIdentifier(ev.target.value)}
             />
           </div>
 
@@ -86,34 +77,8 @@ export function Giris() {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="maliMusavirKodu">Mali müşavir kodu</label>
-            <input
-              id="maliMusavirKodu"
-              name="maliMusavirKodu"
-              type="text"
-              autoComplete="off"
-              placeholder="örn. MM-DEMO"
-              value={maliMusavirKodu}
-              onChange={(ev) => setMaliMusavirKodu(ev.target.value)}
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="firmaKodu">Firma kodu</label>
-            <input
-              id="firmaKodu"
-              name="firmaKodu"
-              type="text"
-              autoComplete="off"
-              placeholder="örn. DEMO-GALERI"
-              value={firmaKodu}
-              onChange={(ev) => setFirmaKodu(ev.target.value)}
-            />
-          </div>
-
           <p className="login-hint">
-            En az bir kod zorunlu. Gateway: {apiConfig.gatewayUrl}
+            Gateway: {apiConfig.gatewayUrl}
             {apiConfig.authMode !== "gateway"
               ? ` · auth=${apiConfig.authMode}`
               : ""}

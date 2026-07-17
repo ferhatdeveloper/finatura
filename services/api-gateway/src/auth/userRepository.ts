@@ -27,12 +27,12 @@ export interface AuthUserRecord {
 
 export interface UserRepository {
   /**
-   * E-posta + düz metin parola ile giriş.
+   * Tek identifier (e-posta | telefon | TCKN | vergi no) + parola ile giriş.
    * Opsiyonel hint ile tenant resolve (firmaKodu / slug / id).
    * Üretimde password_hash (bcrypt/argon2) doğrulanır — stub dışında TODO.
    */
   authenticate(
-    email: string,
+    identifier: string,
     password: string,
     tenantHint?: LoginTenantHint,
   ): Promise<AuthUserRecord | null>;

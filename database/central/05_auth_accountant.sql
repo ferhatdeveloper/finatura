@@ -9,6 +9,9 @@
 --   Login'de opsiyonel; sırayla:
 --     tenants.mali_musavir_kodu → accountant_codes.code → slug → id
 --     (+ 05b varsa mali_musavir_baglantilari.kod)
+--
+-- Çoklu giriş kimlikleri (telefon / TCKN / vergi): 09_user_login_identifiers.sql
+-- Login body: identifier (+ password); UI’da tek kullanıcı adı alanı.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------

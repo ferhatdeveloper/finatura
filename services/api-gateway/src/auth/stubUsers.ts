@@ -56,11 +56,11 @@ export function findStubById(userId: string): StubUser | null {
 }
 
 export async function authenticateUser(
-  email: string,
+  identifier: string,
   password: string,
   tenantHint?: LoginTenantHint,
 ): Promise<AuthUserRecord | null> {
-  return getUserRepository().authenticate(email, password, tenantHint);
+  return getUserRepository().authenticate(identifier, password, tenantHint);
 }
 
 export async function findUserById(
