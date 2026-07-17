@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { DONEM } from "../data/mock";
+import { currentPeriod, periodLabel } from "../data/types";
 
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: "/", label: "Özet", end: true },
@@ -13,6 +13,7 @@ const NAV: { to: string; label: string; end?: boolean }[] = [
 export function Layout() {
   const { user, session, logout } = useAuth();
   const navigate = useNavigate();
+  const donem = periodLabel(currentPeriod());
 
   function onLogout() {
     logout();
@@ -41,7 +42,7 @@ export function Layout() {
         <div className="sidebar-foot">
           {session?.source === "mock" ? "Auth stub (mock)" : "Auth · API gateway"}
           <br />
-          Dönem: {DONEM}
+          Dönem: {donem}
         </div>
       </aside>
       <div className="workspace">

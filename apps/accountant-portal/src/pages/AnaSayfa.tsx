@@ -1,16 +1,55 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  BANKA_HAREKETLERI,
-  DONEM,
-  FATURALAR,
-  GIDER_PUSULALARI,
-  ONAY_BEKLEYENLER,
-} from "../data/mock";
+  fetchBankaHareketleri,
+  fetchFaturalar,
+  fetchGiderPusulalari,
+  fetchOnayKuyrugu,
+} from "../api/tenant";
+import { currentPeriod, periodLabel } from "../data/types";
 
 export function AnaSayfa() {
-  const bekleyenFatura = FATURALAR.filter((f) => f.durum === "beklemede").length;
-  const bekleyenPusula = GIDER_PUSULALARI.filter((g) => g.durum === "beklemede").length;
-  const eslesmeyen = BANKA_HAREKETLERI.filter((b) => !b.mutabik).length;
+  const period = currentPeriod();
+  const [bekleyenFatura, setBekleyenFatura] = useState(0);
+  const [bekleyenPusula, setBekleyenPusula] = useState(0);
+  const [eslesmeyen, setEslesmeyen] = useState(0);
+  const [kuyruk, setKuyruk] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [faturalar, pusulalar, bankalar, onay] = await Promise.all([
+          fetchFaturalar(period),
+          fetchGiderPusulalari(period),
+          fetchBankaHareketleri(),
+          fetchOnayKuyrugu(period),
+        ]);
+        if (cancelled) return;
+        setBekleyenFatura(
+          faturalar.filter((f) => f.durum === "beklemede").length,
+        );
+        setBekleyenPusula(
+          pusulalar.filter((g) => g.durum === "beklemede").length,
+        );
+        setEslesmeyen(bankalar.filter((b) => !b.mutabik).length);
+        setKuyruk(onay.length);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Özet yüklenemedi");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
 
   return (
     <>
@@ -18,11 +57,18 @@ export function AnaSayfa() {
         <div>
           <h1>Mükellef defteri özeti</h1>
           <p>
-            {DONEM} dönemi — faturalar, gider pusulaları ve banka hareketlerini tek
-            ekrandan izleyin. Belge listeleri mock; kimlik doğrulama UI akışı aktiftir.
+            {periodLabel(period)} dönemi — faturalar, gider pusulaları ve banka
+            hareketleri canlı API üzerinden.
           </p>
         </div>
       </header>
+
+      {error ? (
+        <p className="login-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {loading ? <p className="muted">Yükleniyor…</p> : null}
 
       <div className="stats">
         <div className="stat">
@@ -39,7 +85,7 @@ export function AnaSayfa() {
         </div>
         <div className="stat">
           <div className="label">Toplu onay kuyruğu</div>
-          <div className="value">{ONAY_BEKLEYENLER.length}</div>
+          <div className="value">{kuyruk}</div>
         </div>
       </div>
 
@@ -58,7 +104,7 @@ export function AnaSayfa() {
         </Link>
         <Link className="home-card" to="/toplu-onay">
           <h2>Toplu onay</h2>
-          <p>Seçili belgeleri tek tıkla onaylayın veya reddedin.</p>
+          <p>Dönem seçimi, müşavir kodu ve Luca XML export.</p>
         </Link>
       </div>
     </>

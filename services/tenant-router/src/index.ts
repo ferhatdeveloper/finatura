@@ -4,6 +4,7 @@ import { closeCentralPool } from './db/centralPool.js';
 import { tenantContext } from './middleware/tenantContext.js';
 import { bankTransactionsRouter } from './routes/bankTransactions.js';
 import { healthRouter } from './routes/health.js';
+import { invoicesRouter } from './routes/invoices.js';
 import { manualVeresiyeRouter } from './routes/manualVeresiye.js';
 import { ratesRouter } from './routes/rates.js';
 import { settlementsRouter } from './routes/settlements.js';
@@ -42,6 +43,7 @@ app.get('/api/tenant/ping', tenantContext, async (req, res) => {
 
 /** Banka hareketleri + matching önerileri + mahsup (gateway /v1/tenant/*). */
 app.use('/api/tenant', bankTransactionsRouter);
+app.use('/api/tenant', invoicesRouter);
 app.use('/api/tenant', ratesRouter);
 app.use('/api/tenant', settlementsRouter);
 app.use('/api/tenant', manualVeresiyeRouter);

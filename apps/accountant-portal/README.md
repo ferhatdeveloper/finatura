@@ -39,7 +39,7 @@ Kodlardan **en az biri** yeterlidir.
 | Değişken | Varsayılan | Açıklama |
 |----------|------------|---------|
 | `VITE_API_GATEWAY_URL` | `http://localhost:3000` | api-gateway adresi |
-| `VITE_AUTH_MODE` | `auto` | `auto` (gateway → mock), `mock`, `gateway` |
+| `VITE_AUTH_MODE` | `gateway` | `gateway` (varsayılan), `mock`, `auto` (gateway → mock) |
 
 ## Gereksinimler
 

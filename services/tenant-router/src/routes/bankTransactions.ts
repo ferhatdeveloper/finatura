@@ -192,13 +192,19 @@ export const bankTransactionsRouter = Router();
 
 bankTransactionsRouter.use(tenantContext);
 
-/** GET /api/tenant/bank-transactions?matchStatus=unmatched&direction=inbound */
+/**
+ * GET /api/tenant/bank-transactions?matchStatus=unmatched|matched|ignored|all&direction=inbound
+ * matchStatus=all (veya *) → durum filtresi yok.
+ */
 bankTransactionsRouter.get('/bank-transactions', async (req, res) => {
   const pool = req.tenantPool!;
-  const matchStatus =
+  const matchStatusRaw =
     typeof req.query.matchStatus === 'string' && req.query.matchStatus.trim()
-      ? req.query.matchStatus.trim()
+      ? req.query.matchStatus.trim().toLowerCase()
       : 'unmatched';
+  const filterByStatus =
+    matchStatusRaw !== 'all' && matchStatusRaw !== '*';
+  const matchStatus = filterByStatus ? matchStatusRaw : undefined;
   const direction =
     typeof req.query.direction === 'string' && req.query.direction.trim()
       ? req.query.direction.trim()
@@ -209,15 +215,23 @@ bankTransactionsRouter.get('/bank-transactions', async (req, res) => {
     : 100;
 
   try {
-    const params: unknown[] = [matchStatus, limit];
-    let directionClause = '';
+    const clauses: string[] = ['bt.deleted_at IS NULL'];
+    const params: unknown[] = [];
+
+    if (matchStatus) {
+      params.push(matchStatus);
+      clauses.push(
+        `bt.match_status = $${params.length}::public.bank_tx_match_status`,
+      );
+    }
     if (direction === 'inbound' || direction === 'outbound') {
-      params.splice(1, 0, direction);
-      directionClause = 'AND bt.direction = $2::public.bank_tx_direction';
+      params.push(direction);
+      clauses.push(
+        `bt.direction = $${params.length}::public.bank_tx_direction`,
+      );
     }
 
-    const limitParam = directionClause ? '$3' : '$2';
-    const statusParam = '$1';
+    params.push(limit);
 
     const { rows } = await pool.query<BankTxRow>(
       `SELECT
@@ -237,11 +251,9 @@ bankTransactionsRouter.get('/bank-transactions', async (req, res) => {
        FROM public.bank_transactions bt
        LEFT JOIN public.bank_accounts ba
          ON ba.id = bt.bank_account_id AND ba.deleted_at IS NULL
-       WHERE bt.deleted_at IS NULL
-         AND bt.match_status = ${statusParam}::public.bank_tx_match_status
-         ${directionClause}
+       WHERE ${clauses.join(' AND ')}
        ORDER BY bt.transaction_at DESC
-       LIMIT ${limitParam}`,
+       LIMIT $${params.length}`,
       params,
     );
 

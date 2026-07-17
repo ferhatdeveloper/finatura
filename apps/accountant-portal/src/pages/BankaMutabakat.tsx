@@ -1,36 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchBankaHareketleri } from "../api/tenant";
 import {
-  BANKA_HAREKETLERI,
-  BankaHareketi,
-  DONEM,
+  currentPeriod,
   formatTRY,
   formatTarih,
-} from "../data/mock";
+  periodLabel,
+  type BankaHareketi,
+} from "../data/types";
 
 export function BankaMutabakat() {
-  const [hareketler, setHareketler] = useState<BankaHareketi[]>(BANKA_HAREKETLERI);
+  const [hareketler, setHareketler] = useState<BankaHareketi[]>([]);
   const [sadeceAcik, setSadeceAcik] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      setHareketler(await fetchBankaHareketleri());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Banka hareketleri yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, []);
 
   const liste = sadeceAcik ? hareketler.filter((h) => !h.mutabik) : hareketler;
   const mutabikSayisi = hareketler.filter((h) => h.mutabik).length;
   const acikSayisi = hareketler.length - mutabikSayisi;
-
-  function eslestir(id: string) {
-    setHareketler((prev) =>
-      prev.map((h) =>
-        h.id === id
-          ? {
-              ...h,
-              mutabik: true,
-              eslesenBelge: h.eslesenBelge ?? "MANUEL-ESLESME",
-            }
-          : h,
-      ),
-    );
-    setToast("Hareket eşleştirildi (mock — kaydedilmedi).");
-    window.setTimeout(() => setToast(null), 2500);
-  }
 
   return (
     <>
@@ -38,16 +40,30 @@ export function BankaMutabakat() {
         <div>
           <h1>Banka mutabakat</h1>
           <p>
-            {DONEM} banka hareketlerini fatura / gider pusulası ile eşleştirin.
-            Finteo entegrasyonu bağlandığında canlı veri gelecek.
+            {periodLabel(currentPeriod())} banka hareketleri — gateway →
+            tenant-router.
           </p>
         </div>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={loading}
+          onClick={() => void load()}
+        >
+          Yenile
+        </button>
       </header>
+
+      {error ? (
+        <p className="login-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="stats">
         <div className="stat">
           <div className="label">Toplam hareket</div>
-          <div className="value">{hareketler.length}</div>
+          <div className="value">{loading ? "…" : hareketler.length}</div>
         </div>
         <div className="stat">
           <div className="label">Mutabık</div>
@@ -81,47 +97,38 @@ export function BankaMutabakat() {
               <th>Tutar</th>
               <th>Eşleşen belge</th>
               <th>Durum</th>
-              <th />
             </tr>
           </thead>
           <tbody>
-            {liste.map((h) => (
-              <tr key={h.id}>
-                <td>{formatTarih(h.tarih)}</td>
-                <td>{h.banka}</td>
-                <td>{h.aciklama}</td>
-                <td>{h.yon === "giris" ? "Giriş" : "Çıkış"}</td>
-                <td className="num">{formatTRY(h.tutar)}</td>
-                <td>{h.eslesenBelge ?? "—"}</td>
-                <td>
-                  {h.mutabik ? (
-                    <span className="badge badge-ok">Mutabık</span>
-                  ) : (
-                    <span className="badge badge-warn">Açık</span>
-                  )}
-                </td>
-                <td>
-                  {!h.mutabik && (
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => eslestir(h.id)}
-                    >
-                      Eşleştir
-                    </button>
-                  )}
+            {liste.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="empty-hint">
+                  {loading ? "Yükleniyor…" : "Hareket yok."}
                 </td>
               </tr>
-            ))}
+            ) : (
+              liste.map((h) => (
+                <tr key={h.id}>
+                  <td>{formatTarih(h.tarih)}</td>
+                  <td>{h.banka}</td>
+                  <td>{h.aciklama}</td>
+                  <td>{h.yon === "giris" ? "Giriş" : "Çıkış"}</td>
+                  <td className="num">{formatTRY(h.tutar)}</td>
+                  <td>{h.eslesenBelge ?? "—"}</td>
+                  <td>
+                    {h.mutabik ? (
+                      <span className="badge badge-ok">Mutabık</span>
+                    ) : (
+                      <span className="badge badge-warn">Açık</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {toast && (
-        <div className="toast" role="status">
-          {toast}
-        </div>
-      )}
     </>
   );
 }

@@ -1,23 +1,50 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DurumBadge } from "../components/DurumBadge";
+import { fetchFaturalar } from "../api/tenant";
 import {
   BelgeDurum,
-  DONEM,
-  FATURALAR,
+  currentPeriod,
   formatTRY,
   formatTarih,
-} from "../data/mock";
+  periodLabel,
+  type FaturaKaydi,
+} from "../data/types";
 
 export function AylikFaturalar() {
+  const period = currentPeriod();
+  const [rows, setRows] = useState<FaturaKaydi[]>([]);
   const [durumFiltre, setDurumFiltre] = useState<BelgeDurum | "hepsi">("hepsi");
   const [mukellef, setMukellef] = useState("hepsi");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchFaturalar(period);
+        if (!cancelled) setRows(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Faturalar yüklenemedi");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
 
   const mukellefler = useMemo(
-    () => Array.from(new Set(FATURALAR.map((f) => f.mukellef))),
-    [],
+    () => Array.from(new Set(rows.map((f) => f.mukellef))),
+    [rows],
   );
 
-  const liste = FATURALAR.filter((f) => {
+  const liste = rows.filter((f) => {
     if (durumFiltre !== "hepsi" && f.durum !== durumFiltre) return false;
     if (mukellef !== "hepsi" && f.mukellef !== mukellef) return false;
     return true;
@@ -31,16 +58,21 @@ export function AylikFaturalar() {
         <div>
           <h1>Aylık fatura listesi</h1>
           <p>
-            {DONEM} dönemi mükellef faturaları. e-Fatura, e-Arşiv ve sektör alış-satış
-            belgelerini durumu ve KDV ile görüntüleyin.
+            {periodLabel(period)} dönemi mükellef faturaları (canlı tenant API).
           </p>
         </div>
       </header>
 
+      {error ? (
+        <p className="login-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       <div className="stats">
         <div className="stat">
           <div className="label">Liste sayısı</div>
-          <div className="value">{liste.length}</div>
+          <div className="value">{loading ? "…" : liste.length}</div>
         </div>
         <div className="stat">
           <div className="label">Toplam (KDV dahil)</div>
@@ -98,7 +130,7 @@ export function AylikFaturalar() {
             {liste.length === 0 ? (
               <tr>
                 <td colSpan={8} className="empty-hint">
-                  Filtreye uyan fatura yok.
+                  {loading ? "Yükleniyor…" : "Filtreye uyan fatura yok."}
                 </td>
               </tr>
             ) : (

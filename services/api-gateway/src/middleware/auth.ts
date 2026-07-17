@@ -38,10 +38,17 @@ export function requireAuth(
       role: claims.role ?? 'member',
     };
     next();
-  } catch {
+  } catch (err) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? String((err as { code?: string }).code)
+        : 'invalid_token';
+    const expired = code === 'token_expired';
     res.status(401).json({
-      error: 'invalid_token',
-      message: 'JWT geçersiz veya süresi dolmuş',
+      error: expired ? 'token_expired' : 'invalid_token',
+      message: expired
+        ? 'JWT süresi dolmuş — /auth/refresh ile yenileyin'
+        : 'JWT geçersiz — yeniden giriş yapın',
     });
   }
 }

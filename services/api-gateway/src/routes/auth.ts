@@ -116,10 +116,17 @@ authRouter.post('/auth/refresh', async (req, res, next) => {
       }
 
       res.json(issueAuthTokens(user));
-    } catch {
+    } catch (err) {
+      const code =
+        err && typeof err === 'object' && 'code' in err
+          ? String((err as { code?: string }).code)
+          : 'invalid_refresh';
       res.status(401).json({
-        error: 'invalid_refresh',
-        message: 'Refresh token geçersiz veya süresi dolmuş',
+        error: code === 'token_expired' ? 'refresh_expired' : 'invalid_refresh',
+        message:
+          code === 'token_expired'
+            ? 'Refresh token süresi dolmuş — yeniden giriş yapın'
+            : 'Refresh token geçersiz — yeniden giriş yapın',
       });
     }
   } catch (err) {

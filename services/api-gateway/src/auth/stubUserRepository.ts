@@ -5,16 +5,18 @@ import type {
   UserRepository,
 } from './userRepository.js';
 
+type StubRecord = AuthUserRecord & {
+  password: string;
+  firmaKodu: string;
+};
+
 /**
  * Geliştirme stub kullanıcı deposu — CENTRAL_DATABASE_URL olmadan çalışır.
- * Ortam değişkenleri: AUTH_STUB_*
+ * Ortam değişkenleri: AUTH_STUB_* (+ opsiyonel AUTH_STUB_ACCOUNTANT_*)
  */
 export class StubUserRepository implements UserRepository {
-  private getStub(): AuthUserRecord & {
-    password: string;
-    firmaKodu: string;
-  } {
-    return {
+  private listStubs(): StubRecord[] {
+    const owner: StubRecord = {
       userId: config.authStub.userId,
       email: config.authStub.email,
       displayName: 'Finatura Demo',
@@ -24,6 +26,25 @@ export class StubUserRepository implements UserRepository {
       password: config.authStub.password,
       firmaKodu: config.authStub.firmaKodu,
     };
+
+    const accountant: StubRecord = {
+      userId:
+        process.env.AUTH_STUB_ACCOUNTANT_USER_ID ??
+        '00000000-0000-4000-8000-0000000000mm',
+      email: process.env.AUTH_STUB_ACCOUNTANT_EMAIL ?? 'mm@finatura.app',
+      displayName:
+        process.env.AUTH_STUB_ACCOUNTANT_DISPLAY_NAME ?? 'Ayşe Yılmaz, SMMM',
+      tenantId: config.authStub.tenantId,
+      tenantSlug: config.authStub.tenantSlug,
+      role: 'accountant',
+      password: process.env.AUTH_STUB_ACCOUNTANT_PASSWORD ?? 'mali1234',
+      firmaKodu:
+        process.env.AUTH_STUB_ACCOUNTANT_FIRMA_KODU ??
+        process.env.AUTH_STUB_ACCOUNTANT_CODE ??
+        'MM-DEMO',
+    };
+
+    return [owner, accountant];
   }
 
   async authenticate(
@@ -31,13 +52,11 @@ export class StubUserRepository implements UserRepository {
     password: string,
     tenantHint?: LoginTenantHint,
   ): Promise<AuthUserRecord | null> {
-    const user = this.getStub();
-    if (
-      email.trim().toLowerCase() !== user.email.toLowerCase() ||
-      password !== user.password
-    ) {
-      return null;
-    }
+    const emailNorm = email.trim().toLowerCase();
+    const user = this.listStubs().find(
+      (u) => u.email.toLowerCase() === emailNorm && u.password === password,
+    );
+    if (!user) return null;
     if (tenantHint && !this.matchesTenantHint(user, tenantHint)) {
       return null;
     }
@@ -48,8 +67,8 @@ export class StubUserRepository implements UserRepository {
     userId: string,
     tenantHint?: LoginTenantHint,
   ): Promise<AuthUserRecord | null> {
-    const user = this.getStub();
-    if (user.userId !== userId) return null;
+    const user = this.listStubs().find((u) => u.userId === userId);
+    if (!user) return null;
     if (tenantHint && !this.matchesTenantHint(user, tenantHint)) {
       return null;
     }
@@ -60,8 +79,8 @@ export class StubUserRepository implements UserRepository {
     userId: string,
     tenantIdOrSlug: string,
   ): Promise<boolean> {
-    const user = this.getStub();
-    if (user.userId !== userId) return false;
+    const user = this.listStubs().find((u) => u.userId === userId);
+    if (!user) return false;
     return (
       tenantIdOrSlug === user.tenantId ||
       tenantIdOrSlug === user.tenantSlug ||
@@ -70,7 +89,7 @@ export class StubUserRepository implements UserRepository {
   }
 
   private matchesTenantHint(
-    user: AuthUserRecord & { firmaKodu: string },
+    user: StubRecord,
     hint: LoginTenantHint,
   ): boolean {
     const { firmaKodu, tenantSlug, tenantId } = hint;
@@ -81,15 +100,14 @@ export class StubUserRepository implements UserRepository {
       return (
         code === user.firmaKodu.toUpperCase() ||
         code === user.tenantSlug.toUpperCase() ||
+        code === config.authStub.firmaKodu.toUpperCase() ||
         firmaKodu.trim() === user.tenantId
       );
     }
     return true;
   }
 
-  private toRecord(
-    user: AuthUserRecord & { password?: string; firmaKodu?: string },
-  ): AuthUserRecord {
+  private toRecord(user: StubRecord): AuthUserRecord {
     return {
       userId: user.userId,
       email: user.email,

@@ -1,7 +1,8 @@
+import { apiConfig } from "../api/config";
 import type { AuthUser, LoginRequest, LoginResponse } from "./types";
 import { AuthError } from "./types";
 
-/** Demo mali müşavir — mock interceptor */
+/** Demo mali müşavir — yalnızca VITE_AUTH_MODE=mock */
 export const MOCK_ACCOUNTANT = {
   email: "mm@finatura.app",
   password: "mali1234",
@@ -22,21 +23,20 @@ const MOCK_USER: AuthUser = {
 };
 
 function gatewayBaseUrl(): string {
-  const raw = import.meta.env.VITE_API_GATEWAY_URL as string | undefined;
-  return (raw ?? "http://localhost:3000").replace(/\/$/, "");
+  return apiConfig.gatewayUrl;
 }
 
 function authMode(): "auto" | "mock" | "gateway" {
-  const v = String(import.meta.env.VITE_AUTH_MODE ?? "auto").toLowerCase();
-  if (v === "mock" || v === "gateway") return v;
-  return "auto";
+  const v = apiConfig.authMode;
+  if (v === "mock" || v === "auto") return v;
+  return "gateway";
 }
 
 function b64url(input: string): string {
   return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-/** Geliştirme JWT stub — gerçek imza yok; localStorage oturumu için yeterli */
+/** Yalnızca VITE_AUTH_MODE=mock — gerçek imza yok */
 function issueStubTokens(user: AuthUser): Omit<LoginResponse, "user"> {
   const header = b64url(JSON.stringify({ alg: "none", typ: "JWT" }));
   const now = Math.floor(Date.now() / 1000);
@@ -57,7 +57,7 @@ function issueStubTokens(user: AuthUser): Omit<LoginResponse, "user"> {
       sub: user.id,
       typ: "refresh",
       iat: now,
-      exp: now + 604_800,
+      exp: now + 604800,
     }),
   );
   return {
@@ -68,28 +68,20 @@ function issueStubTokens(user: AuthUser): Omit<LoginResponse, "user"> {
   };
 }
 
-function normalizeUser(raw: Record<string, unknown>, req: LoginRequest): AuthUser {
-  const id = String(raw.id ?? raw.userId ?? "");
-  const email = String(raw.email ?? req.email);
-  const displayName = String(raw.displayName ?? raw.fullName ?? email);
-  const tenantId = String(raw.tenantId ?? "");
-  const tenantSlug = String(raw.tenantSlug ?? "");
-  const role = String(raw.role ?? "member");
-  const firmaUnvan = String(
-    raw.firmaUnvan ??
-      raw.tenantName ??
-      raw.companyName ??
-      (tenantSlug || "Firma"),
-  );
-
+function normalizeUser(
+  raw: Record<string, unknown>,
+  req: LoginRequest,
+): AuthUser {
   return {
-    id,
-    email,
-    displayName,
-    firmaUnvan,
-    tenantId,
-    tenantSlug,
-    role,
+    id: String(raw.id ?? ""),
+    email: String(raw.email ?? req.email),
+    displayName: String(raw.displayName ?? raw.email ?? "Kullanıcı"),
+    firmaUnvan: String(
+      raw.firmaUnvan ?? raw.tenantSlug ?? req.firmaKodu ?? "Mükellef",
+    ),
+    tenantId: String(raw.tenantId ?? ""),
+    tenantSlug: String(raw.tenantSlug ?? ""),
+    role: String(raw.role ?? "member"),
     maliMusavirKodu: req.maliMusavirKodu,
     firmaKodu: req.firmaKodu,
   };
@@ -99,30 +91,16 @@ function mockLogin(req: LoginRequest): LoginResponse {
   const email = req.email.trim().toLowerCase();
   const mm = req.maliMusavirKodu?.trim().toUpperCase() ?? "";
   const fk = req.firmaKodu?.trim().toUpperCase() ?? "";
-
-  if (!email || !req.password) {
-    throw new AuthError("invalid_request", "E-posta ve şifre zorunludur.");
-  }
-  if (!mm && !fk) {
-    throw new AuthError(
-      "invalid_request",
-      "Mali müşavir kodu veya firma kodundan en az biri gerekli.",
-    );
-  }
-
   const emailOk = email === MOCK_ACCOUNTANT.email;
   const passOk = req.password === MOCK_ACCOUNTANT.password;
   const mmOk = !mm || mm === MOCK_ACCOUNTANT.maliMusavirKodu;
   const fkOk = !fk || fk === MOCK_ACCOUNTANT.firmaKodu;
-  const codeMatch =
+  const codeOk =
     (Boolean(mm) && mm === MOCK_ACCOUNTANT.maliMusavirKodu) ||
     (Boolean(fk) && fk === MOCK_ACCOUNTANT.firmaKodu);
 
-  if (!emailOk || !passOk || !mmOk || !fkOk || !codeMatch) {
-    throw new AuthError(
-      "invalid_credentials",
-      "E-posta, şifre veya kod bilgileri hatalı.",
-    );
+  if (!emailOk || !passOk || !mmOk || !fkOk || !codeOk) {
+    throw new AuthError("invalid_credentials", "E-posta, şifre veya kod hatalı.");
   }
 
   const user: AuthUser = {
@@ -139,7 +117,6 @@ async function gatewayLogin(req: LoginRequest): Promise<LoginResponse> {
     email: req.email.trim(),
     password: req.password,
   };
-  // Gateway UserRepository: firmaKodu (mali müşavir veya firma davet kodu)
   const code = req.firmaKodu?.trim() || req.maliMusavirKodu?.trim();
   if (code) body.firmaKodu = code;
   if (req.maliMusavirKodu?.trim()) {
@@ -188,8 +165,8 @@ export interface LoginResult {
 }
 
 /**
- * api-gateway `POST /auth/login` çağırır.
- * Gateway hazır değilse veya kimlik stub'da yoksa mock interceptor devreye girer.
+ * Varsayılan: yalnızca gateway.
+ * mock / auto yalnızca VITE_AUTH_MODE ile açılır.
  */
 export async function loginWithGatewayOrMock(
   req: LoginRequest,
@@ -204,14 +181,13 @@ export async function loginWithGatewayOrMock(
     return { response: await gatewayLogin(req), source: "gateway" };
   }
 
-  // auto: gateway dene → başarısızsa mock
+  // auto: gateway dene → başarısızsa mock (yalnızca açıkça auto)
   try {
     return { response: await gatewayLogin(req), source: "gateway" };
   } catch (gatewayErr) {
     try {
       return { response: mockLogin(req), source: "mock" };
     } catch (mockErr) {
-      // Ağ hatasıysa mock mesajını göster; aksi halde gateway hatası
       if (
         gatewayErr instanceof TypeError ||
         (gatewayErr instanceof AuthError && gatewayErr.code === "login_failed")

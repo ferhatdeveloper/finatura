@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { apiConfig } from "../api/config";
 import { AuthError, useAuth } from "../auth/AuthContext";
 import { MOCK_ACCOUNTANT } from "../auth/loginApi";
 
@@ -11,7 +12,7 @@ export function Giris() {
     (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
     "/";
 
-  const [email, setEmail] = useState<string>(MOCK_ACCOUNTANT.email);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [maliMusavirKodu, setMaliMusavirKodu] = useState("");
   const [firmaKodu, setFirmaKodu] = useState("");
@@ -56,17 +57,9 @@ export function Giris() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <header className="login-brand">
-          <p className="brand-name">Finatura</p>
-          <p className="brand-sub">Mali Müşavir Portalı</p>
-        </header>
-
-        <h1>Giriş yapın</h1>
-        <p className="login-lead">
-          E-posta, şifre ve mali müşavir kodu veya firma kodu ile oturum açın.
-        </p>
-
-        <form className="login-form" onSubmit={onSubmit} noValidate>
+        <h1>Finatura</h1>
+        <p className="login-sub">Mali müşavir girişi</p>
+        <form className="login-form" onSubmit={(e) => void onSubmit(e)}>
           <div className="field">
             <label htmlFor="email">E-posta</label>
             <input
@@ -113,16 +106,20 @@ export function Giris() {
               name="firmaKodu"
               type="text"
               autoComplete="off"
-              placeholder="örn. ORNEK-GALERI"
+              placeholder="örn. DEMO-GALERI"
               value={firmaKodu}
               onChange={(ev) => setFirmaKodu(ev.target.value)}
             />
           </div>
 
           <p className="login-hint">
-            En az bir kod zorunlu. Demo: {MOCK_ACCOUNTANT.email} /{" "}
-            {MOCK_ACCOUNTANT.password} · kod {MOCK_ACCOUNTANT.maliMusavirKodu} veya{" "}
-            {MOCK_ACCOUNTANT.firmaKodu}
+            En az bir kod zorunlu. Gateway: {apiConfig.gatewayUrl}
+            {apiConfig.authMode !== "gateway"
+              ? ` · auth=${apiConfig.authMode}`
+              : ""}
+            {apiConfig.authMode === "mock"
+              ? ` · Demo: ${MOCK_ACCOUNTANT.email} / ${MOCK_ACCOUNTANT.password}`
+              : ""}
           </p>
 
           {error ? (

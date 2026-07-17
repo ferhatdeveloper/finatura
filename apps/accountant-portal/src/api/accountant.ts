@@ -1,7 +1,4 @@
-/**
- * Accountant Bridge istemcisi.
- * Fail olursa çağıran mock fallback kullanır.
- */
+/** Accountant Bridge istemcisi — mock fallback yok. */
 
 const API_BASE =
   import.meta.env.VITE_ACCOUNTANT_API_URL?.replace(/\/$/, "") ||
@@ -114,12 +111,3 @@ export function downloadXml(filename: string, xml: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** Mock Luca iskeleti — API yokken indirme. */
-export function mockLucaXml(period: string, refs: string[]): string {
-  const items = refs.map((r) => `    <Fis referans="${r}" />`).join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<LucaYevmiye donem="${period}" kaynak="accountant-portal-mock">
-${items || "    <!-- seçim yok -->"}
-</LucaYevmiye>
-`;
-}

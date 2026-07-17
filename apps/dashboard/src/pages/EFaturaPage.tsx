@@ -30,7 +30,7 @@ export function EFaturaPage() {
         <h1>E-fatura taslakları</h1>
         <p>
           Gönderim öncesi taslaklar · path{" "}
-          <code>{endpoints.einvoiceDrafts}</code>
+          <code>{endpoints.invoices}</code>
         </p>
       </header>
 

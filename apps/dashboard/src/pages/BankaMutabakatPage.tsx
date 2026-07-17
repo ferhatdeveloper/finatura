@@ -29,7 +29,7 @@ export function BankaMutabakatPage() {
       <header className="page-header">
         <h1>Banka mutabakat</h1>
         <p>
-          Settlement listesi · path <code>{endpoints.settlements}</code>
+          Banka hareketleri · path <code>{endpoints.bankTransactions}</code>
         </p>
       </header>
 

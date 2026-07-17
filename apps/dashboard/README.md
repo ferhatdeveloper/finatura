@@ -37,8 +37,8 @@ Açılır: **http://localhost:5175**
 | Şifre | `demo1234` |
 | Firma kodu | `ornek` (veya `demo`) |
 
-`VITE_USE_MOCK=true` (varsayılan): HTTP atlamadan mock yanıt.  
-`VITE_USE_MOCK=false`: gerçek gateway / document-agent çağrıları.
+`VITE_USE_MOCK=false` (varsayılan): gerçek gateway / document-agent.  
+`VITE_USE_MOCK=true`: HTTP atlamadan mock yanıt.
 
 ## Endpoint path’leri (hazır)
 
@@ -47,8 +47,9 @@ Açılır: **http://localhost:5175**
 | Giriş | `POST` | `/auth/login` | api-gateway (`VITE_API_GATEWAY_URL`, :3000) |
 | Belge analiz | `POST` | `/api/v1/documents/analyze` | document-agent (`VITE_DOCUMENT_AGENT_URL`, :3100) |
 | Cari özet | `GET` | `/v1/tenant/caris/summary` | gateway → tenant |
-| Settlement | `GET` | `/v1/tenant/settlements` | gateway → tenant |
-| E-fatura taslak | `GET` | `/v1/tenant/einvoices/drafts` | gateway → tenant |
+| Settlement / banka | `GET` | `/v1/tenant/bank-transactions` | gateway → tenant |
+| E-fatura / fatura | `GET` | `/v1/tenant/invoices` | gateway → tenant |
+| Token yenile | `POST` | `/auth/refresh` | api-gateway |
 
 Login body: `{ email, password, firmaKodu }` (+ `tenantSlug` yedek alanı).
 

@@ -1,37 +1,61 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   approvePeriod,
   downloadXml,
   exportLucaJson,
-  mockLucaXml,
   verifyCode,
 } from "../api/accountant";
+import { fetchOnayKuyrugu } from "../api/tenant";
+import { useAuth } from "../auth/AuthContext";
 import {
-  ONAY_BEKLEYENLER,
-  OnayBekleyen,
+  currentPeriod,
   formatTRY,
   formatTarih,
-} from "../data/mock";
-
-const DEFAULT_TENANT = "anadolu-oto";
-const DEFAULT_CODE = "MM-2026-DEMO";
-const DEFAULT_PERIOD = "2026-07";
+  type OnayBekleyen,
+} from "../data/types";
 
 function tipToSelection(o: OnayBekleyen): "invoice" | "bank" {
   return o.tip === "Banka Mutabakat" ? "bank" : "invoice";
 }
 
 export function TopluOnay() {
-  const [kuyruk, setKuyruk] = useState<OnayBekleyen[]>(ONAY_BEKLEYENLER);
+  const { user } = useAuth();
+  const [kuyruk, setKuyruk] = useState<OnayBekleyen[]>([]);
   const [secilen, setSecilen] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [tenantId, setTenantId] = useState(DEFAULT_TENANT);
-  const [code, setCode] = useState(DEFAULT_CODE);
-  const [period, setPeriod] = useState(DEFAULT_PERIOD);
+  const [tenantId, setTenantId] = useState(user?.tenantSlug || user?.tenantId || "");
+  const [code, setCode] = useState(user?.maliMusavirKodu || "");
+  const [period, setPeriod] = useState(currentPeriod());
   const [token, setToken] = useState<string | null>(null);
   const [sessionLabel, setSessionLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchOnayKuyrugu(period);
+        if (!cancelled) {
+          setKuyruk(data);
+          setSecilen(new Set());
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Kuyruk yüklenemedi");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
 
   const seciliToplam = useMemo(
     () =>
@@ -62,16 +86,12 @@ export function TopluOnay() {
     else setSecilen(new Set(kuyruk.map((o) => o.id)));
   }
 
-  async function ensureToken(): Promise<string | null> {
+  async function ensureToken(): Promise<string> {
     if (token) return token;
-    try {
-      const res = await verifyCode(tenantId, code);
-      setToken(res.token);
-      setSessionLabel(`${res.accountantName} · ${res.tenantName}`);
-      return res.token;
-    } catch {
-      return null;
-    }
+    const res = await verifyCode(tenantId, code);
+    setToken(res.token);
+    setSessionLabel(`${res.accountantName} · ${res.tenantName}`);
+    return res.token;
   }
 
   async function dogrulaKod() {
@@ -85,7 +105,7 @@ export function TopluOnay() {
       setToken(null);
       setSessionLabel(null);
       showToast(
-        `Kod doğrulanamadı (mock devam): ${err instanceof Error ? err.message : "ağ hatası"}`,
+        `Kod doğrulanamadı: ${err instanceof Error ? err.message : "ağ hatası"}`,
       );
     } finally {
       setBusy(false);
@@ -100,7 +120,7 @@ export function TopluOnay() {
     if (aksiyon === "red") {
       setKuyruk((prev) => prev.filter((o) => !secilen.has(o.id)));
       setSecilen(new Set());
-      showToast(`${adet} belge reddedildi (yerel).`);
+      showToast(`${adet} belge reddedildi (yerel kuyruk).`);
       return;
     }
 
@@ -114,8 +134,6 @@ export function TopluOnay() {
 
     try {
       const t = await ensureToken();
-      if (!t) throw new Error("oturum yok");
-
       const approved = await approvePeriod({
         token: t,
         tenantId,
@@ -126,38 +144,22 @@ export function TopluOnay() {
         bankIds,
       });
 
-      let downloadNote = "";
-      try {
-        const exported = await exportLucaJson({
-          token: t,
-          tenantId,
-          period,
-          approvalId: approved.approval.id,
-        });
-        downloadXml(exported.filename, exported.xml);
-        downloadNote = ` Luca XML indirildi (${exported.fisAdedi} fiş).`;
-      } catch {
-        const refs = seciliKayitlar.map((o) => o.referans);
-        downloadXml(
-          `luca-${tenantId}-${period}-mock.xml`,
-          mockLucaXml(period, refs),
-        );
-        downloadNote = " Luca XML mock indirildi (export API başarısız).";
-      }
+      const exported = await exportLucaJson({
+        token: t,
+        tenantId,
+        period,
+        approvalId: approved.approval.id,
+      });
+      downloadXml(exported.filename, exported.xml);
 
       setKuyruk((prev) => prev.filter((o) => !secilen.has(o.id)));
       setSecilen(new Set());
-      showToast(`${adet} belge onaylandı.${downloadNote}`);
-    } catch (err) {
-      const refs = seciliKayitlar.map((o) => o.referans);
-      downloadXml(
-        `luca-${tenantId}-${period}-mock.xml`,
-        mockLucaXml(period, refs),
-      );
-      setKuyruk((prev) => prev.filter((o) => !secilen.has(o.id)));
-      setSecilen(new Set());
       showToast(
-        `${adet} belge onaylandı (mock fallback). ${err instanceof Error ? err.message : ""}`.trim(),
+        `${adet} belge onaylandı. Luca XML indirildi (${exported.fisAdedi} fiş).`,
+      );
+    } catch (err) {
+      showToast(
+        `Onay başarısız: ${err instanceof Error ? err.message : "bilinmeyen hata"}`,
       );
     } finally {
       setBusy(false);
@@ -169,10 +171,7 @@ export function TopluOnay() {
       <header className="page-head">
         <div>
           <h1>Toplu onay</h1>
-          <p>
-            Kod doğrula → dönem onayla → Luca XML. API yoksa yerel mock ile
-            devam eder.
-          </p>
+          <p>Kod doğrula → dönem onayla → Luca XML (accountant-bridge).</p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
@@ -193,6 +192,12 @@ export function TopluOnay() {
           </button>
         </div>
       </header>
+
+      {error ? (
+        <p className="login-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="panel" style={{ marginBottom: "1rem" }}>
         <div
@@ -251,7 +256,7 @@ export function TopluOnay() {
       <div className="stats">
         <div className="stat">
           <div className="label">Kuyruk</div>
-          <div className="value">{kuyruk.length}</div>
+          <div className="value">{loading ? "…" : kuyruk.length}</div>
         </div>
         <div className="stat">
           <div className="label">Seçili</div>
@@ -265,7 +270,9 @@ export function TopluOnay() {
 
       <div className="panel">
         {kuyruk.length === 0 ? (
-          <div className="empty-hint">Onay bekleyen belge kalmadı.</div>
+          <div className="empty-hint">
+            {loading ? "Yükleniyor…" : "Onay bekleyen belge kalmadı."}
+          </div>
         ) : (
           <table>
             <thead>

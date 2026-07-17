@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../auth/services/auth_api.dart';
+import '../../auth/services/token_storage.dart';
 import '../config/settlement_api_config.dart';
 import '../models/bank_transaction.dart';
 import '../models/manual_cari_movement.dart';
@@ -12,7 +14,7 @@ import 'mock_settlement_data.dart';
 /// Gateway `/v1/tenant/bank-transactions*` + `/settlements` istemcisi.
 ///
 /// `allowMock == true` → yalnızca mock (DEBUG). Aksi halde gerçek API;
-/// hata durumunda sessiz mock doldurma yok — exception fırlatılır.
+/// 401'de bir kez `/auth/refresh` dener.
 class SettlementRepository {
   SettlementRepository({
     http.Client? client,
@@ -20,14 +22,20 @@ class SettlementRepository {
     this.allowMock = SettlementApiConfig.allowMock,
     required this.accessToken,
     required this.tenantId,
+    AuthApi? authApi,
+    TokenStorage? tokenStorage,
   })  : _client = client ?? http.Client(),
-        baseUrl = _normalizeBaseUrl(baseUrl ?? SettlementApiConfig.baseUrl);
+        baseUrl = _normalizeBaseUrl(baseUrl ?? SettlementApiConfig.baseUrl),
+        _authApi = authApi ?? AuthApi(client: client),
+        _tokenStorage = tokenStorage ?? TokenStorage();
 
   final http.Client _client;
   final String baseUrl;
   final bool allowMock;
-  final String accessToken;
+  String accessToken;
   final String tenantId;
+  final AuthApi _authApi;
+  final TokenStorage _tokenStorage;
 
   static String _normalizeBaseUrl(String raw) {
     final trimmed = raw.trim().replaceAll(RegExp(r'/$'), '');
@@ -46,6 +54,22 @@ class SettlementRepository {
         'Authorization': 'Bearer $accessToken',
         'X-Tenant-ID': tenantId,
       };
+
+  Future<http.Response> _authorized(
+    Future<http.Response> Function() send, {
+    bool retried = false,
+  }) async {
+    final response = await send();
+    if (response.statusCode != 401 || retried || allowMock) {
+      return response;
+    }
+    final ok = await _authApi.refreshSession();
+    if (!ok) return response;
+    final session = await _tokenStorage.readSession();
+    if (session == null || session.accessToken.isEmpty) return response;
+    accessToken = session.accessToken;
+    return _authorized(send, retried: true);
+  }
 
   String get _bankTransactionsUrl => '$baseUrl/v1/tenant/bank-transactions';
 
@@ -74,9 +98,9 @@ class SettlementRepository {
     );
 
     try {
-      final response = await _client
-          .get(uri, headers: _headers)
-          .timeout(const Duration(seconds: 15));
+      final response = await _authorized(
+        () => _client.get(uri, headers: _headers).timeout(const Duration(seconds: 15)),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return _parseBankTxList(response.body);
@@ -100,12 +124,14 @@ class SettlementRepository {
     }
 
     try {
-      final response = await _client
-          .get(
-            Uri.parse(_matchSuggestionsUrl(bankTxId)),
-            headers: _headers,
-          )
-          .timeout(const Duration(seconds: 15));
+      final response = await _authorized(
+        () => _client
+            .get(
+              Uri.parse(_matchSuggestionsUrl(bankTxId)),
+              headers: _headers,
+            )
+            .timeout(const Duration(seconds: 15)),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return _parseSuggestions(response.body);
@@ -139,13 +165,15 @@ class SettlementRepository {
     };
 
     try {
-      final response = await _client
-          .post(
-            Uri.parse(_settlementsUrl),
-            headers: _headers,
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: 15));
+      final response = await _authorized(
+        () => _client
+            .post(
+              Uri.parse(_settlementsUrl),
+              headers: _headers,
+              body: jsonEncode(body),
+            )
+            .timeout(const Duration(seconds: 15)),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         DateTime? settledAt;
@@ -185,9 +213,9 @@ class SettlementRepository {
     );
 
     try {
-      final response = await _client
-          .get(uri, headers: _headers)
-          .timeout(const Duration(seconds: 15));
+      final response = await _authorized(
+        () => _client.get(uri, headers: _headers).timeout(const Duration(seconds: 15)),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return _parseCariOptions(response.body);
@@ -225,13 +253,15 @@ class SettlementRepository {
     }
 
     try {
-      final response = await _client
-          .post(
-            Uri.parse(_manualMovementsUrl),
-            headers: _headers,
-            body: jsonEncode(request.toJson()),
-          )
-          .timeout(const Duration(seconds: 15));
+      final response = await _authorized(
+        () => _client
+            .post(
+              Uri.parse(_manualMovementsUrl),
+              headers: _headers,
+              body: jsonEncode(request.toJson()),
+            )
+            .timeout(const Duration(seconds: 15)),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decoded = jsonDecode(response.body);

@@ -27,9 +27,32 @@ class AuthController extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> bootstrap() async {
-    _session = await _storage.readSession();
+    final stored = await _storage.readSession();
+    // Eski mock / geçersiz token oturumlarını at
+    if (stored != null &&
+        (stored.fromMock ||
+            stored.accessToken.startsWith('demo-mock') ||
+            stored.accessToken.split('.').length != 3)) {
+      await _storage.clear();
+      _session = null;
+    } else {
+      _session = stored;
+    }
     _ready = true;
     notifyListeners();
+  }
+
+  /// Access JWT yenile; UI oturumunu güncelle.
+  Future<bool> refreshTokens() async {
+    final ok = await _api.refreshSession();
+    if (!ok) {
+      _session = null;
+      notifyListeners();
+      return false;
+    }
+    _session = await _storage.readSession();
+    notifyListeners();
+    return _session != null;
   }
 
   Future<bool> login({

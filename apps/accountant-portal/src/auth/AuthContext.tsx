@@ -6,6 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { apiConfig } from "../api/config";
+import { purgeInvalidAccountantSession } from "../api/client";
 import { loginWithGatewayOrMock, isAccountantRole } from "./loginApi";
 import { clearSession, loadSession, saveSession } from "./storage";
 import type { AuthSession, AuthUser, LoginRequest } from "./types";
@@ -24,7 +26,10 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<AuthSession | null>(() => loadSession());
+  const [session, setSession] = useState<AuthSession | null>(() => {
+    if (apiConfig.authMode !== "mock") purgeInvalidAccountantSession();
+    return loadSession();
+  });
   const [ready] = useState(true);
 
   const login = useCallback(async (req: LoginRequest) => {

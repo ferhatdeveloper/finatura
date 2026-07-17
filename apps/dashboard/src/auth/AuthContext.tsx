@@ -7,7 +7,12 @@ import {
   type ReactNode,
 } from "react";
 import { login as apiLogin, logout as apiLogout } from "../api/auth";
-import { loadSession, type Session } from "../api/client";
+import { apiConfig } from "../api/config";
+import {
+  loadSession,
+  purgeInvalidSession,
+  type Session,
+} from "../api/client";
 
 interface AuthContextValue {
   session: Session | null;
@@ -23,7 +28,10 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(() => loadSession());
+  const [session, setSession] = useState<Session | null>(() => {
+    if (!apiConfig.useMock) purgeInvalidSession();
+    return loadSession();
+  });
 
   const login = useCallback(
     async (email: string, password: string, firmaKodu: string) => {

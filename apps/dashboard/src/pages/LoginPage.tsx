@@ -14,9 +14,15 @@ export function LoginPage() {
       ? (location.state as { from: string }).from
       : "/";
 
-  const [email, setEmail] = useState<string>(MOCK_DEMO.email);
-  const [password, setPassword] = useState<string>(MOCK_DEMO.password);
-  const [firmaKodu, setFirmaKodu] = useState<string>(MOCK_DEMO.firmaKodu);
+  const [email, setEmail] = useState<string>(
+    apiConfig.useMock ? MOCK_DEMO.email : "",
+  );
+  const [password, setPassword] = useState<string>(
+    apiConfig.useMock ? MOCK_DEMO.password : "",
+  );
+  const [firmaKodu, setFirmaKodu] = useState<string>(
+    apiConfig.useMock ? MOCK_DEMO.firmaKodu : "",
+  );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 

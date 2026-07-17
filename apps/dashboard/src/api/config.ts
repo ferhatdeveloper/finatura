@@ -1,6 +1,7 @@
-/** Ortam değişkenleri — gerçek gateway / document-agent path'leri hazır. */
+/** Ortam değişkenleri — varsayılan canlı gateway / document-agent. */
 export const apiConfig = {
-  useMock: (import.meta.env.VITE_USE_MOCK ?? "true") !== "false",
+  /** Mock yalnızca VITE_USE_MOCK=true ile açılır. */
+  useMock: import.meta.env.VITE_USE_MOCK === "true",
   gatewayUrl: (
     import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:3000"
   ).replace(/\/$/, ""),
@@ -9,7 +10,7 @@ export const apiConfig = {
   ).replace(/\/$/, ""),
 } as const;
 
-/** Bilinen / planlanan endpoint path'leri (gateway + document-agent). */
+/** Bilinen endpoint path'leri (gateway + document-agent). */
 export const endpoints = {
   /** POST — body: { email, password, firmaKodu } */
   login: "/auth/login",
@@ -21,10 +22,10 @@ export const endpoints = {
   caris: "/v1/tenant/caris",
   /** POST — elden tahsilat/tediye */
   manualCariMovement: "/v1/tenant/veresiye-transactions/manual",
-  /** GET — banka mutabakat (settlement) listesi */
-  settlements: "/v1/tenant/settlements",
-  /** GET — e-fatura taslakları */
-  einvoiceDrafts: "/v1/tenant/einvoices/drafts",
+  /** GET — banka hareketleri (mutabakat listesi) */
+  bankTransactions: "/v1/tenant/bank-transactions",
+  /** GET — e-fatura / fatura taslakları */
+  invoices: "/v1/tenant/invoices",
   /** POST multipart — document-agent */
   documentsAnalyze: "/api/v1/documents/analyze",
   documentsAnalyzeText: "/api/v1/documents/analyze-text",
