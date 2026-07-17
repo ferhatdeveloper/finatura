@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { apiConfig } from "../api/config";
+import { BrandLogo } from "./BrandLogo";
 
 type NavItem = { to: string; label: string; end?: boolean };
 
@@ -35,7 +36,7 @@ export function Layout() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <p className="brand-mark">Finatura</p>
+          <BrandLogo className="brand-logo--sidebar" />
           <p className="brand-sub">Operasyon paneli</p>
         </div>
 

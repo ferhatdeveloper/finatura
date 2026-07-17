@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-      'MarketRatesScreen shows fx gold tabs and opens exchange deduction',
+      'MarketRatesScreen shows harem style market table and opens exchange deduction',
       (tester) async {
     final repository = _FakeRatesRepository();
     final settlementRepository = _RecordingSettlementRepository();
@@ -24,12 +24,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('FINATURA'), findsOneWidget);
     expect(find.text('Döviz'), findsOneWidget);
     expect(find.text('Altın'), findsOneWidget);
+    expect(find.text('Birim'), findsOneWidget);
+    expect(find.text('Alış'), findsOneWidget);
+    expect(find.text('Satış'), findsOneWidget);
     expect(find.text('USDTRY'), findsWidgets);
+    expect(find.text('Amerikan Doları'), findsOneWidget);
+    expect(find.text('16:20'), findsWidgets);
     expect(find.textContaining('Kaynak datshop.com.tr'), findsOneWidget);
 
-    await tester.tap(find.text('Cari düş').first);
+    await tester.tap(find.text('USDTRY').last);
     await tester.pumpAndSettle();
 
     expect(find.text('Elden İşlem'), findsOneWidget);

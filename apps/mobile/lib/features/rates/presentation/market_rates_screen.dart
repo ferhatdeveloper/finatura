@@ -115,27 +115,18 @@ class _MarketRatesScreenState extends State<MarketRatesScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Kur & Altın'),
-        actions: [
-          IconButton(
-            tooltip: 'Yenile',
-            onPressed: _loading ? null : _loadRates,
-            icon: const Icon(Icons.refresh_rounded),
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          _RatesHero(
+            rates: _snapshot?.fx.take(6).toList() ?? const [],
+            loading: _loading,
+            onRefresh: _loading ? null : _loadRates,
           ),
+          Expanded(child: _buildBody(theme)),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: _finaturaGold,
-          labelColor: _finaturaGreen,
-          tabs: const [
-            Tab(text: 'Döviz'),
-            Tab(text: 'Altın'),
-          ],
-        ),
       ),
-      body: _buildBody(theme),
+      bottomNavigationBar: _RatesBottomTabs(controller: _tabController),
     );
   }
 
@@ -160,7 +151,6 @@ class _MarketRatesScreenState extends State<MarketRatesScreen>
       controller: _tabController,
       children: [
         _RateCategoryView(
-          title: 'Döviz piyasası',
           rates: snapshot.fx,
           disclaimer: snapshot.disclaimer,
           fetchedAt: snapshot.fetchedAt,
@@ -169,7 +159,6 @@ class _MarketRatesScreenState extends State<MarketRatesScreen>
           onDeduct: _openExchangeDeduction,
         ),
         _RateCategoryView(
-          title: 'Altın piyasası',
           rates: snapshot.gold,
           disclaimer: snapshot.disclaimer,
           fetchedAt: snapshot.fetchedAt,
@@ -213,9 +202,81 @@ class _MarketRatesScreenState extends State<MarketRatesScreen>
   }
 }
 
+class _RatesHero extends StatelessWidget {
+  const _RatesHero({
+    required this.rates,
+    required this.loading,
+    required this.onRefresh,
+  });
+
+  final List<MarketRate> rates;
+  final bool loading;
+  final VoidCallback? onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.paddingOf(context).top;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(12, topPadding + 8, 12, 14),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1729B5),
+            Color(0xFF21148F),
+            Color(0xFF291079),
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 42,
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: 'Menü',
+                  onPressed: () {},
+                  icon: const Icon(Icons.menu_rounded, color: Colors.white),
+                ),
+                const Expanded(
+                  child: Text(
+                    'FINATURA',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 5,
+                      fontFamily: 'serif',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Yenile',
+                  onPressed: onRefresh,
+                  icon: Icon(
+                    loading
+                        ? Icons.hourglass_top_rounded
+                        : Icons.notifications_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          _TickerStrip(rates: rates),
+        ],
+      ),
+    );
+  }
+}
+
 class _RateCategoryView extends StatelessWidget {
   const _RateCategoryView({
-    required this.title,
     required this.rates,
     required this.disclaimer,
     required this.fetchedAt,
@@ -224,7 +285,6 @@ class _RateCategoryView extends StatelessWidget {
     required this.onDeduct,
   });
 
-  final String title;
   final List<MarketRate> rates;
   final String disclaimer;
   final DateTime fetchedAt;
@@ -236,18 +296,19 @@ class _RateCategoryView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     if (rates.isEmpty) {
-      return _RatesEmpty(title: title, disclaimer: disclaimer);
+      return _RatesEmpty(disclaimer: disclaimer);
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+      padding: EdgeInsets.zero,
       children: [
         if (demo) ...[
           Container(
-            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: _finaturaGold.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               'Demo fiyatlar — canlı kaynak şu an yanıt vermiyor. İşlem için kullanmayın.',
@@ -257,23 +318,25 @@ class _RateCategoryView extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
         ],
-        _TickerStrip(rates: rates.take(8).toList()),
-        const SizedBox(height: 16),
-        _SectionHeader(
-          title: title,
+        _MarketColumnHeader(
           fetchedAt: fetchedAt,
           stale: stale,
           demo: demo,
         ),
-        const SizedBox(height: 10),
-        _RatesTable(rates: rates, onDeduct: onDeduct),
-        const SizedBox(height: 14),
-        Text(
-          disclaimer,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+        _RatesTable(
+          rates: rates,
+          fetchedAt: fetchedAt,
+          onDeduct: onDeduct,
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 26),
+          child: Text(
+            disclaimer,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: const Color(0xFF96A0AE),
+              height: 1.2,
+            ),
           ),
         ),
       ],
@@ -289,11 +352,12 @@ class _TickerStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 116,
+      height: 78,
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         scrollDirection: Axis.horizontal,
         itemCount: rates.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => const SizedBox(width: 0),
         itemBuilder: (context, index) => _TickerCard(rate: rates[index]),
       ),
     );
@@ -310,59 +374,58 @@ class _TickerCard extends StatelessWidget {
     final theme = Theme.of(context);
     final positive = (rate.changePercent ?? 0) >= 0;
     final changeColor =
-        positive ? const Color(0xFF15803D) : Colors.red.shade700;
+        positive ? const Color(0xFF24A766) : const Color(0xFFFF4A57);
 
     return Container(
-      width: 148,
-      padding: const EdgeInsets.all(14),
+      width: 116,
+      padding: const EdgeInsets.fromLTRB(4, 2, 12, 0),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border(
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.14)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             rate.symbol,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: _finaturaGreen,
-              fontWeight: FontWeight.w900,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: const Color(0xFF65A7FF),
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const Spacer(),
-          CustomPaint(
-            size: const Size(double.infinity, 24),
-            painter: _SparklinePainter(
-              color: changeColor,
-              positive: positive,
+          const SizedBox(height: 4),
+          Text(
+            _formatNumber(rate.ask),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              height: 1,
             ),
           ),
           const SizedBox(height: 6),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Expanded(
-                child: Text(
-                  _formatNumber(rate.ask),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
               Text(
                 _formatChange(rate.changePercent),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: changeColor,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: CustomPaint(
+                  size: const Size(double.infinity, 18),
+                  painter: _SparklinePainter(
+                    color: changeColor,
+                    positive: positive,
+                  ),
                 ),
               ),
             ],
@@ -373,15 +436,13 @@ class _TickerCard extends StatelessWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.title,
+class _MarketColumnHeader extends StatelessWidget {
+  const _MarketColumnHeader({
     required this.fetchedAt,
     required this.stale,
     required this.demo,
   });
 
-  final String title;
   final DateTime fetchedAt;
   final bool stale;
   final bool demo;
@@ -389,24 +450,55 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: _finaturaGreen,
+    return Container(
+      color: const Color(0xFFEFF3F8),
+      padding: const EdgeInsets.fromLTRB(14, 9, 14, 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 42,
+            child: Row(
+              children: [
+                Text(
+                  'Birim',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: const Color(0xFF566B86),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                const Icon(
+                  Icons.swap_vert_rounded,
+                  size: 15,
+                  color: Color(0xFF566B86),
+                ),
+              ],
             ),
           ),
-        ),
-        Text(
-          '${demo ? 'Demo · ' : (stale ? 'Önbellek · ' : '')}${_formatTime(fetchedAt)}',
-          style: theme.textTheme.labelMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          Expanded(
+            flex: 26,
+            child: Text(
+              'Alış',
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFF566B86),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 32,
+            child: Text(
+              'Satış',
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFF566B86),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -414,57 +506,27 @@ class _SectionHeader extends StatelessWidget {
 class _RatesTable extends StatelessWidget {
   const _RatesTable({
     required this.rates,
+    required this.fetchedAt,
     required this.onDeduct,
   });
 
   final List<MarketRate> rates;
+  final DateTime fetchedAt;
   final ValueChanged<MarketRate> onDeduct;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-            child: Row(
-              children: [
-                Expanded(flex: 3, child: _HeaderText('Birim')),
-                Expanded(child: _HeaderText('Alış', alignRight: true)),
-                Expanded(child: _HeaderText('Satış', alignRight: true)),
-                const SizedBox(width: 80),
-              ],
-            ),
+    return Column(
+      children: [
+        for (final rate in rates)
+          _RateRow(
+            rate: rate,
+            fallbackTime: fetchedAt,
+            dividerColor: theme.colorScheme.outlineVariant,
+            onDeduct: onDeduct,
           ),
-          Divider(height: 1, color: theme.colorScheme.outlineVariant),
-          for (final rate in rates) _RateRow(rate: rate, onDeduct: onDeduct),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeaderText extends StatelessWidget {
-  const _HeaderText(this.text, {this.alignRight = false});
-
-  final String text;
-  final bool alignRight;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      textAlign: alignRight ? TextAlign.right : TextAlign.left,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-          ),
+      ],
     );
   }
 }
@@ -472,52 +534,109 @@ class _HeaderText extends StatelessWidget {
 class _RateRow extends StatelessWidget {
   const _RateRow({
     required this.rate,
+    required this.fallbackTime,
+    required this.dividerColor,
     required this.onDeduct,
   });
 
   final MarketRate rate;
+  final DateTime fallbackTime;
+  final Color dividerColor;
   final ValueChanged<MarketRate> onDeduct;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final changeColor =
-        (rate.changePercent ?? 0) >= 0 ? const Color(0xFF15803D) : Colors.red;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        (rate.changePercent ?? 0) >= 0 ? const Color(0xFF168C42) : Colors.red;
+    final updatedAt = rate.updatedAt ?? fallbackTime;
+    return Material(
+      color: Colors.white,
+      child: InkWell(
+        onTap: () => onDeduct(rate),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: dividerColor)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 9, 14, 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  rate.symbol,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: _finaturaGreen,
+                Expanded(
+                  flex: 42,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              rate.symbol,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: const Color(0xFF536A86),
+                                fontWeight: FontWeight.w500,
+                                height: 1.05,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.access_time_rounded,
+                            size: 12,
+                            color: Color(0xFF9BA7B5),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            _formatTime(updatedAt),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: const Color(0xFF8A96A6),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        rate.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFF738196),
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${rate.label} · ${_formatChange(rate.changePercent)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(color: changeColor),
+                Expanded(
+                  flex: 26,
+                  child: _PriceText(_formatNumber(rate.bid)),
+                ),
+                Expanded(
+                  flex: 32,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _PriceText(_formatNumber(rate.ask)),
+                      const SizedBox(height: 1),
+                      Text(
+                        _formatChange(rate.changePercent),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: changeColor,
+                          height: 1,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          Expanded(child: _PriceText(_formatNumber(rate.bid))),
-          Expanded(child: _PriceText(_formatNumber(rate.ask))),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => onDeduct(rate),
-            child: const Text('Cari düş'),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -534,8 +653,48 @@ class _PriceText extends StatelessWidget {
       value,
       textAlign: TextAlign.right,
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w700,
+            color: const Color(0xFF526884),
+            fontSize: 20,
+            fontWeight: FontWeight.w400,
+            height: 1.1,
           ),
+    );
+  }
+}
+
+class _RatesBottomTabs extends StatelessWidget {
+  const _RatesBottomTabs({required this.controller});
+
+  final TabController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top:
+                BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+          ),
+        ),
+        child: TabBar(
+          controller: controller,
+          indicatorColor: Colors.transparent,
+          labelColor: const Color(0xFF1B43C9),
+          unselectedLabelColor: const Color(0xFFB9C2D0),
+          labelStyle:
+              const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          unselectedLabelStyle:
+              const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          tabs: const [
+            Tab(icon: Icon(Icons.currency_exchange_rounded), text: 'Döviz'),
+            Tab(icon: Icon(Icons.account_balance_rounded), text: 'Altın'),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -620,9 +779,8 @@ class _RatesError extends StatelessWidget {
 }
 
 class _RatesEmpty extends StatelessWidget {
-  const _RatesEmpty({required this.title, required this.disclaimer});
+  const _RatesEmpty({required this.disclaimer});
 
-  final String title;
   final String disclaimer;
 
   @override
@@ -636,7 +794,7 @@ class _RatesEmpty extends StatelessWidget {
           children: [
             const Icon(Icons.price_change_outlined, size: 44),
             const SizedBox(height: 12),
-            Text('$title listesi boş'),
+            const Text('Piyasa listesi boş'),
             const SizedBox(height: 6),
             Text(
               disclaimer,

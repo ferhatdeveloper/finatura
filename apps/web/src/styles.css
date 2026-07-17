@@ -66,6 +66,41 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
+/* —— Brand logo —— */
+.brand-logo {
+  --brand-logo-size: 1.4rem;
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: var(--brand-logo-size);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.07em;
+  color: var(--white);
+  font-kerning: normal;
+  white-space: nowrap;
+}
+
+.brand-logo__accent {
+  color: var(--brass);
+}
+
+.brand-logo--nav {
+  --brand-logo-size: 1.48rem;
+  filter: drop-shadow(0 5px 16px rgba(0, 0, 0, 0.22));
+}
+
+.brand-logo--hero {
+  --brand-logo-size: clamp(3.6rem, 8.2vw, 6.4rem);
+  text-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.brand-logo--footer {
+  --brand-logo-size: 1rem;
+  color: var(--mist);
+  vertical-align: -0.08em;
+}
+
 /* —— Nav —— */
 .site-nav {
   position: fixed;
@@ -94,16 +129,8 @@ input {
 }
 
 .nav-logo {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.35rem;
-  letter-spacing: -0.03em;
   color: var(--white);
   transition: color 0.25s;
-}
-
-.nav-logo span {
-  color: var(--brass);
 }
 
 .nav-actions {
@@ -338,17 +365,10 @@ input {
 }
 
 .hero-brand {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(3rem, 7.5vw, 5.4rem);
-  line-height: 0.92;
-  letter-spacing: -0.045em;
   margin-bottom: 0.55rem;
 }
 
-.hero-brand em {
-  font-style: normal;
-  color: var(--brass);
+.hero-brand .brand-logo__accent {
   display: inline-block;
   animation: brass-glow 3.5s ease-in-out infinite alternate;
 }

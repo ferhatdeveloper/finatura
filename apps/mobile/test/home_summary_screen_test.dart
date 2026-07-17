@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:finatura_mobile/features/auth/auth.dart';
+import 'package:finatura_mobile/features/rates/rates.dart';
 import 'package:finatura_mobile/features/settlement/data/settlement_repository.dart';
 import 'package:finatura_mobile/features/settlement/models/bank_transaction.dart';
 import 'package:finatura_mobile/features/settlement/models/veresiye_open_debt.dart';
@@ -44,6 +45,7 @@ void main() {
         home: HomeSummaryScreen(
           auth: auth,
           repository: _FakeSettlementRepository(),
+          ratesRepository: _FakeRatesRepository(),
         ),
       ),
     );
@@ -53,6 +55,19 @@ void main() {
     expect(find.text('demo-galeri'), findsOneWidget);
     expect(find.text('Galeri hesabı'), findsOneWidget);
     expect(find.text('Net finansal durum'), findsOneWidget);
+    expect(find.text('Piyasa özeti'), findsOneWidget);
+    expect(find.text('USDTRY'), findsOneWidget);
+    expect(find.text('GRAMALTIN'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Alacak'),
+      220,
+      scrollable: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
+    );
+
     expect(find.text('Alacak'), findsOneWidget);
     expect(find.text('Verecek'), findsOneWidget);
     expect(find.text('Hızlı işlemler'), findsOneWidget);
@@ -69,6 +84,44 @@ void main() {
     expect(find.text('Son hareketler'), findsOneWidget);
     expect(find.text('Ahmet Yılmaz'), findsOneWidget);
   });
+}
+
+class _FakeRatesRepository extends RatesRepository {
+  _FakeRatesRepository()
+      : super(accessToken: 'test-token', tenantId: 'tenant-1');
+
+  @override
+  Future<MarketRatesSnapshot> fetchRates() async {
+    return MarketRatesSnapshot(
+      fx: [
+        MarketRate(
+          symbol: 'USDTRY',
+          label: 'Amerikan Doları',
+          category: MarketRateCategory.fx,
+          bid: 40.18,
+          ask: 40.22,
+          changePercent: 0.12,
+          updatedAt: DateTime(2026, 7, 16, 16, 20),
+          source: 'datshop.com.tr',
+        ),
+      ],
+      gold: [
+        MarketRate(
+          symbol: 'GRAMALTIN',
+          label: 'GRAM ALTIN',
+          category: MarketRateCategory.gold,
+          bid: 4310,
+          ask: 4340,
+          changePercent: -0.08,
+          updatedAt: DateTime(2026, 7, 16, 16, 20),
+          source: 'datshop.com.tr',
+        ),
+      ],
+      fetchedAt: DateTime(2026, 7, 16, 16, 20),
+      source: 'datshop.com.tr',
+      disclaimer: 'Fiyatlar bilgilendirme amaçlıdır. Kaynak datshop.com.tr.',
+    );
+  }
 }
 
 class _FakeSettlementRepository extends SettlementRepository {

@@ -15,7 +15,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(FinaturaApp), findsOneWidget);
-    expect(find.text('Giriş'), findsOneWidget);
+    expect(find.text('Giriş yap'), findsOneWidget);
     expect(find.text('Firma kodu'), findsOneWidget);
   });
 }

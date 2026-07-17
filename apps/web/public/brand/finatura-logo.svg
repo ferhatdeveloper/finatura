@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 140" role="img" aria-labelledby="title desc">
+  <title id="title">Finatura</title>
+  <desc id="desc">Koyu orman ye_ili dokulu zemin üzerinde Finatura tipografik logosu.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="460" y2="140" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#061510"/>
+      <stop offset="0.48" stop-color="#0B1F1A"/>
+      <stop offset="1" stop-color="#123A30"/>
+    </linearGradient>
+    <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="8"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.16"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="460" height="140" fill="url(#bg)"/>
+  <g opacity="0.16">
+    <path d="M-36 60 496-70" stroke="#D4B56A" stroke-width="1"/>
+    <path d="M-26 126 506-4" stroke="#DCE8E2" stroke-width="1"/>
+    <path d="M-34 168 498 38" stroke="#D4B56A" stroke-width="1"/>
+  </g>
+  <rect width="460" height="140" filter="url(#grain)" opacity="0.3"/>
+  <text
+    x="72"
+    y="103"
+    fill="#FFFFFF"
+    font-family="Bricolage Grotesque, Figtree, Arial, sans-serif"
+    font-size="76"
+    font-weight="800"
+    letter-spacing="-7"
+  >Finatur<tspan fill="#D4B56A">a</tspan></text>
+</svg>

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:finatura_mobile/features/auth/models/auth_session.dart';
 import 'package:finatura_mobile/features/auth/services/auth_controller.dart';
+import 'package:finatura_mobile/features/rates/rates.dart';
 import 'package:finatura_mobile/features/settlement/config/settlement_api_config.dart';
 import 'package:finatura_mobile/features/settlement/data/settlement_repository.dart';
 import 'package:finatura_mobile/features/settlement/models/bank_transaction.dart';
@@ -15,12 +16,14 @@ class HomeSummaryScreen extends StatefulWidget {
     super.key,
     this.auth,
     this.repository,
+    this.ratesRepository,
   });
 
   static const routeName = '/home';
 
   final AuthController? auth;
   final SettlementRepository? repository;
+  final RatesRepository? ratesRepository;
 
   @override
   State<HomeSummaryScreen> createState() => _HomeSummaryScreenState();
@@ -28,6 +31,7 @@ class HomeSummaryScreen extends StatefulWidget {
 
 class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
   SettlementRepository? _ownedRepo;
+  RatesRepository? _ownedRatesRepo;
   late Future<_DashboardSnapshot> _snapshot;
 
   AuthSession? get _session => widget.auth?.session;
@@ -43,9 +47,12 @@ class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
   void didUpdateWidget(covariant HomeSummaryScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.auth?.session != widget.auth?.session ||
-        oldWidget.repository != widget.repository) {
+        oldWidget.repository != widget.repository ||
+        oldWidget.ratesRepository != widget.ratesRepository) {
       _ownedRepo?.dispose();
+      _ownedRatesRepo?.dispose();
       _ownedRepo = null;
+      _ownedRatesRepo = null;
       _bootstrapRepo();
       _snapshot = _loadSnapshot();
     }
@@ -54,39 +61,56 @@ class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
   @override
   void dispose() {
     _ownedRepo?.dispose();
+    _ownedRatesRepo?.dispose();
     super.dispose();
   }
 
   void _bootstrapRepo() {
-    if (widget.repository != null) return;
     final session = _session;
     if (session == null) return;
 
-    _ownedRepo = SettlementRepository(
-      accessToken: session.accessToken,
-      tenantId: session.user.tenantId,
-      allowMock: session.fromMock || SettlementApiConfig.allowMock,
-    );
+    if (widget.repository == null) {
+      _ownedRepo = SettlementRepository(
+        accessToken: session.accessToken,
+        tenantId: session.user.tenantId,
+        allowMock: session.fromMock || SettlementApiConfig.allowMock,
+      );
+    }
+    if (widget.ratesRepository == null) {
+      _ownedRatesRepo = RatesRepository(
+        accessToken: session.accessToken,
+        tenantId: session.user.tenantId,
+      );
+    }
   }
 
   Future<_DashboardSnapshot> _loadSnapshot() async {
     final repo = widget.repository ?? _ownedRepo;
+    final ratesRepo = widget.ratesRepository ?? _ownedRatesRepo;
     final session = _session;
     if (repo == null || session == null) {
       return _DashboardSnapshot.empty(session: session);
     }
 
+    final ratesFuture = ratesRepo?.fetchRates();
     final transactions = await repo.fetchInboundUnmatched(limit: 5);
     final openTransactions = transactions.where((tx) => tx.isOpen).toList();
     final suggestions = await Future.wait(
       openTransactions.map((tx) => repo.fetchMatchSuggestions(tx.id)),
     );
+    MarketRatesSnapshot? rates;
+    try {
+      rates = await ratesFuture;
+    } catch (_) {
+      rates = null;
+    }
 
     return _DashboardSnapshot.fromData(
       session: session,
       transactions: openTransactions,
       debts: suggestions.expand((items) => items).toList(),
       usesMock: session.fromMock || repo.allowMock,
+      rates: rates,
     );
   }
 
@@ -142,6 +166,10 @@ class _HomeSummaryScreenState extends State<HomeSummaryScreen> {
                   ],
                   _BalanceHero(snapshot: data),
                   const SizedBox(height: 16),
+                  if (data.marketRates.isNotEmpty) ...[
+                    _MarketOverview(snapshot: data),
+                    const SizedBox(height: 18),
+                  ],
                   const _ActionShortcuts(),
                   const SizedBox(height: 18),
                   _ReceivablePayableGrid(snapshot: data),
@@ -163,12 +191,14 @@ class _DashboardSnapshot {
     required this.transactions,
     required this.debts,
     required this.usesMock,
+    required this.rates,
   });
 
   final AuthSession? session;
   final List<BankTransaction> transactions;
   final List<VeresiyeOpenDebt> debts;
   final bool usesMock;
+  final MarketRatesSnapshot? rates;
 
   double get inboundTotal => transactions.fold(
         0,
@@ -185,12 +215,22 @@ class _DashboardSnapshot {
 
   int get openCount => transactions.length;
 
+  List<MarketRate> get marketRates {
+    final snapshot = rates;
+    if (snapshot == null) return const [];
+    return [
+      ...snapshot.fx.take(2),
+      ...snapshot.gold.take(2),
+    ];
+  }
+
   factory _DashboardSnapshot.empty({AuthSession? session}) {
     return _DashboardSnapshot(
       session: session,
       transactions: const [],
       debts: const [],
       usesMock: session?.fromMock ?? false,
+      rates: null,
     );
   }
 
@@ -199,12 +239,14 @@ class _DashboardSnapshot {
     required List<BankTransaction> transactions,
     required List<VeresiyeOpenDebt> debts,
     required bool usesMock,
+    required MarketRatesSnapshot? rates,
   }) {
     return _DashboardSnapshot(
       session: session,
       transactions: transactions,
       debts: debts,
       usesMock: usesMock,
+      rates: rates,
     );
   }
 }
@@ -429,6 +471,213 @@ class _HeroStat extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MarketOverview extends StatelessWidget {
+  const _MarketOverview({required this.snapshot});
+
+  final _DashboardSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final rates = snapshot.marketRates;
+    final source = snapshot.rates?.demo == true
+        ? 'demo'
+        : snapshot.rates?.source ?? 'api.finatura.app';
+    final fetchedAt = snapshot.rates?.fetchedAt;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: _finaturaGold.withValues(alpha: 0.42)),
+        boxShadow: [
+          BoxShadow(
+            color: _finaturaGreen.withValues(alpha: 0.06),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _finaturaGold.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.currency_exchange_rounded,
+                  color: _finaturaGreen,
+                  size: 21,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Piyasa özeti',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: _finaturaGreen,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${fetchedAt == null ? 'Canlı kur' : _time(fetchedAt)} · $source',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _Pill(
+                label: snapshot.rates?.stale == true ? 'önbellek' : 'canlı',
+                color: _finaturaGreen.withValues(alpha: 0.09),
+                textColor: _finaturaGreen,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 118,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: rates.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                return _MarketRateTile(rate: rates[index]);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MarketRateTile extends StatelessWidget {
+  const _MarketRateTile({required this.rate});
+
+  final MarketRate rate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final positive = (rate.changePercent ?? 0) >= 0;
+    final changeColor = positive ? const Color(0xFF15803D) : scheme.error;
+
+    return Container(
+      width: 166,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: scheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  rate.symbol,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: _finaturaGreen,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              Text(
+                _rateChange(rate.changePercent),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: changeColor,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            rate.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Expanded(
+                child: _RatePrice(label: 'Alış', value: _rate(rate.bid)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _RatePrice(label: 'Satış', value: _rate(rate.ask)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RatePrice extends StatelessWidget {
+  const _RatePrice({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -850,6 +1099,30 @@ String _money(double amount) {
   final fixed =
       amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
   return '₺$fixed';
+}
+
+String _rate(double value) {
+  final fractionDigits = value >= 1000 ? 2 : 4;
+  var formatted = value.toStringAsFixed(fractionDigits);
+  while (formatted.contains('.') && formatted.endsWith('0')) {
+    formatted = formatted.substring(0, formatted.length - 1);
+  }
+  if (formatted.endsWith('.')) {
+    formatted = formatted.substring(0, formatted.length - 1);
+  }
+  return formatted;
+}
+
+String _rateChange(double? value) {
+  if (value == null) return '-';
+  final sign = value > 0 ? '+' : '';
+  return '$sign${value.toStringAsFixed(2)}%';
+}
+
+String _time(DateTime at) {
+  final hour = at.hour.toString().padLeft(2, '0');
+  final minute = at.minute.toString().padLeft(2, '0');
+  return '$hour:$minute';
 }
 
 String _date(DateTime at) {

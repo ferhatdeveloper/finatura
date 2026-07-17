@@ -38,7 +38,6 @@ export function createApp(): express.Application {
   const app = express();
 
   app.disable('x-powered-by');
-  app.use(express.json({ limit: '1mb' }));
 
   // Browser istemcileri (Flutter web / mm portal / marketing)
   const allowed = new Set(corsOrigins());
@@ -63,6 +62,8 @@ export function createApp(): express.Application {
     }
     next();
   });
+
+  app.use(express.json({ limit: '1mb' }));
 
   // Public (rate-limit dışı)
   app.use(healthRouter);

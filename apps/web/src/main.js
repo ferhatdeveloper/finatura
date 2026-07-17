@@ -13,6 +13,15 @@ const APP_URL = (
 const LOGIN_HREF = `${APP_URL}/login`;
 const REGISTER_HREF = `${APP_URL}/register`;
 
+function finaturaLogoMarkup(className = "") {
+  const cls = ["brand-logo", className].filter(Boolean).join(" ");
+  return `
+    <span class="${cls}" aria-label="Finatura">
+      <span>Finatur</span><span class="brand-logo__accent">a</span>
+    </span>
+  `;
+}
+
 function pathOf() {
   const p = window.location.pathname.replace(/\/+$/, "") || "/";
   return p;
@@ -37,7 +46,7 @@ function bindNavClicks(root) {
 function navMarkup() {
   return `
     <header class="site-nav" id="site-nav">
-      <a class="nav-logo" href="/" data-link>Finatura<span>.</span></a>
+      <a class="nav-logo" href="/" data-link>${finaturaLogoMarkup("brand-logo--nav")}</a>
       <div class="nav-actions">
         <a class="nav-anchor" href="#video">Tanıtım</a>
         <a class="nav-anchor" href="#sektorler">Sektörler</a>
@@ -129,7 +138,7 @@ function landingPage() {
         </div>
         ${heroVisualSvg()}
         <div class="hero-copy">
-          <p class="hero-brand">Finatur<em>a</em></p>
+          <p class="hero-brand">${finaturaLogoMarkup("brand-logo--hero")}</p>
           <h1 class="hero-headline">Muhasebe yükünü kameraya bırak.</h1>
           <p class="hero-lead">
             Galeri, kuyumcu ve emlak esnafı için: belgeyi tara, e-Fatura’yı hazırla, bankayı eşleştir, Luca’ya aktar.
@@ -268,7 +277,7 @@ function landingPage() {
       </section>
     </main>
     <footer class="site-footer">
-      <span><strong>Finatura</strong> · finatura.app</span>
+      <span>${finaturaLogoMarkup("brand-logo--footer")} · finatura.app</span>
       <span>© ${new Date().getFullYear()}</span>
     </footer>
   `;

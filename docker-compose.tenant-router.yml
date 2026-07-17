@@ -1,0 +1,37 @@
+# Finatura Tenant Router — Dokploy internal service
+#
+#   - Network: berqenas_net
+#   - Service: finatura_router (internal only, no public domain)
+#   - Gateway TENANT_ROUTER_URL must be http://finatura_router:3100
+
+services:
+  finatura_router:
+    build:
+      context: ./services/tenant-router
+      dockerfile: Dockerfile
+    image: finatura-tenant-router:latest
+    restart: unless-stopped
+    expose:
+      - "3100"
+    environment:
+      NODE_ENV: production
+      PORT: "3100"
+      CENTRAL_DATABASE_URL: ${CENTRAL_DATABASE_URL:?CENTRAL_DATABASE_URL is required}
+      TENANT_LOOKUP_BY: ${TENANT_LOOKUP_BY:-id}
+      POOL_MAX: ${POOL_MAX:-10}
+      POOL_IDLE_TIMEOUT_MS: ${POOL_IDLE_TIMEOUT_MS:-30000}
+      POOL_CACHE_TTL_MS: ${POOL_CACHE_TTL_MS:-300000}
+      POOL_CACHE_MAX_ENTRIES: ${POOL_CACHE_MAX_ENTRIES:-100}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3100/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - berqenas_net
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net
