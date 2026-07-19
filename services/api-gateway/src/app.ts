@@ -3,6 +3,12 @@ import { requireAuth } from './middleware/auth.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimitPlaceholder } from './middleware/rateLimit.js';
 import { tenantContext } from './middleware/tenantContext.js';
+import {
+  createBillingEinvoiceConfigProxy,
+  createBillingPaymentProxy,
+  createKontorProxy,
+} from './proxy/billingProxy.js';
+import { createEinvoiceProxy } from './proxy/einvoiceProxy.js';
 import { createTenantRouterProxy } from './proxy/tenantRouterProxy.js';
 import { adminSettingsRouter } from './routes/adminSettings.js';
 import { adminTenantsRouter } from './routes/adminTenants.js';
@@ -109,6 +115,34 @@ export function createApp(): express.Application {
     requireAuth,
     tenantContext,
     createTenantRouterProxy(),
+  );
+
+  /**
+   * e-Fatura entegratör + başarılı gönderimde kontör düşümü.
+   * /v1/einvoice/* → EINVOICE_INTEGRATOR_URL/api/invoices/*
+   */
+  app.use('/v1/einvoice', requireAuth, tenantContext, createEinvoiceProxy());
+
+  /**
+   * Kontör bakiye / ledger / manuel debit-credit
+   * /v1/kontor/* → BILLING_AGENT_URL/api/kontor/*
+   */
+  app.use('/v1/kontor', requireAuth, tenantContext, createKontorProxy());
+
+  /** Ödeme checkout / webhook köprüsü */
+  app.use(
+    '/v1/billing/payment',
+    requireAuth,
+    tenantContext,
+    createBillingPaymentProxy(),
+  );
+
+  /** Tenant e-fatura provider yapılandırması (billing-agent) */
+  app.use(
+    '/v1/billing/einvoice',
+    requireAuth,
+    tenantContext,
+    createBillingEinvoiceConfigProxy(),
   );
 
   app.use(notFoundHandler);

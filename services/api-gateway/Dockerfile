@@ -6,8 +6,8 @@
 #          Port            = 3000
 # Domain:  api.finatura.app
 #
-# Varsayılan AUTH_PROVIDER=stub — Postgres GEREKTİRMEZ
-# (RetailEX :5432 / Kargo DB ile çakışmaz)
+# Varsayılan AUTH_PROVIDER=central — CENTRAL_DATABASE_URL gerekir
+# (Dokploy: finatura_pg). Yerel stub: AUTH_PROVIDER=stub override.
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -24,7 +24,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV AUTH_PROVIDER=stub
+ENV AUTH_PROVIDER=central
 
 RUN apk add --no-cache wget
 

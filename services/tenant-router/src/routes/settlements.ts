@@ -123,8 +123,9 @@ settlementsRouter.post('/settlements', async (req, res) => {
       cari_id: string;
       amount: string | number;
       currency_code: string | null;
+      invoice_id: string | null;
     }>(
-      `SELECT id, cari_id, amount, currency_code
+      `SELECT id, cari_id, amount, currency_code, invoice_id
        FROM public.veresiye_transactions
        WHERE id = $1::uuid
          AND deleted_at IS NULL
@@ -147,18 +148,20 @@ settlementsRouter.post('/settlements', async (req, res) => {
       typeof body.cariId === 'string' && body.cariId.trim()
         ? body.cariId.trim()
         : veresiye.cari_id;
+    const matchedInvoiceId = veresiye.invoice_id;
 
     const update = await pool.query<{ id: string }>(
       `UPDATE public.bank_transactions
        SET match_status = 'matched'::public.bank_tx_match_status,
            matched_veresiye_id = $2::uuid,
            matched_cari_id = $3::uuid,
+           matched_invoice_id = $4::uuid,
            updated_at = now()
        WHERE id = $1::uuid
          AND deleted_at IS NULL
          AND match_status = 'unmatched'::public.bank_tx_match_status
        RETURNING id`,
-      [bankTxId, veresiyeId, cariId],
+      [bankTxId, veresiyeId, cariId, matchedInvoiceId],
     );
 
     if (!update.rows[0]) {
@@ -205,6 +208,7 @@ settlementsRouter.post('/settlements', async (req, res) => {
       bankTxId,
       veresiyeId,
       cariId,
+      matchedInvoiceId,
       movementId: creditResult.rows[0]?.id,
       settleAmount,
       status: 'settled',

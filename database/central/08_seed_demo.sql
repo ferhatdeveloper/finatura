@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Finatura Central — demo tenant + kullanıcılar (Dokploy / yerel ilk init)
 -- Önkoşul: 01–07 SQL
--- Parola biçimi: dev:<plaintext> (CentralUserRepository)
+-- Parola: bcrypt (CentralUserRepository). Düz metin: demo1234 / mali1234 / admin1234
 -- =============================================================================
 
 -- Demo tenant (yoksa ekle)
@@ -27,18 +27,49 @@ WHERE s.code = 'oto_galeri'
        OR (t.slug = 'ornek-galeri' AND t.deleted_at IS NULL)
   );
 
--- Kullanıcılar (e-posta yoksa)
+-- Kullanıcılar (e-posta yoksa) — bcrypt cost 10
 INSERT INTO public.users (id, email, password_hash, full_name, is_active, is_platform_admin)
 SELECT v.id, v.email, v.password_hash, v.full_name, true, v.is_platform_admin
 FROM (VALUES
-    ('00000000-0000-4000-8000-000000000001'::uuid, 'demo@finatura.app', 'dev:demo1234', 'Finatura Demo', false),
-    ('00000000-0000-4000-8000-000000000002'::uuid, 'mm@finatura.app', 'dev:mali1234', 'Ayşe Yılmaz, SMMM', false),
-    ('00000000-0000-4000-8000-000000000003'::uuid, 'admin@finatura.app', 'dev:admin1234', 'Finatura Superadmin', true)
+    (
+      '00000000-0000-4000-8000-000000000001'::uuid,
+      'demo@finatura.app',
+      '$2b$10$yp14k1owEv8znhrp2RU.N.WwwMGti4ZgXjwIB4Q1F0s.VFw5njTRm',
+      'Finatura Demo',
+      false
+    ),
+    (
+      '00000000-0000-4000-8000-000000000002'::uuid,
+      'mm@finatura.app',
+      '$2b$10$wXKZqaEdiNaCl5dC6jWELeRsITmZcUCVG7KBVyAWWliwbqh3eroYK',
+      'Ayşe Yılmaz, SMMM',
+      false
+    ),
+    (
+      '00000000-0000-4000-8000-000000000003'::uuid,
+      'admin@finatura.app',
+      '$2b$10$ViSSJ.NvELU8H3Sa66VptOmisH.3g.I4.OZTlGNmdZVvJMNs45T7e',
+      'Finatura Superadmin',
+      true
+    )
 ) AS v(id, email, password_hash, full_name, is_platform_admin)
 WHERE NOT EXISTS (
     SELECT 1 FROM public.users u
     WHERE lower(u.email) = lower(v.email) AND u.deleted_at IS NULL
 );
+
+-- Mevcut volume: eski dev: hash → bcrypt (yalnızca demo kullanıcılar)
+UPDATE public.users u
+SET password_hash = v.password_hash,
+    updated_at = now()
+FROM (VALUES
+    ('demo@finatura.app', '$2b$10$yp14k1owEv8znhrp2RU.N.WwwMGti4ZgXjwIB4Q1F0s.VFw5njTRm'),
+    ('mm@finatura.app', '$2b$10$wXKZqaEdiNaCl5dC6jWELeRsITmZcUCVG7KBVyAWWliwbqh3eroYK'),
+    ('admin@finatura.app', '$2b$10$ViSSJ.NvELU8H3Sa66VptOmisH.3g.I4.OZTlGNmdZVvJMNs45T7e')
+) AS v(email, password_hash)
+WHERE lower(u.email) = lower(v.email)
+  AND u.deleted_at IS NULL
+  AND u.password_hash LIKE 'dev:%';
 
 -- Üyelikler
 INSERT INTO public.tenant_memberships (tenant_id, user_id, role, is_active, joined_at)

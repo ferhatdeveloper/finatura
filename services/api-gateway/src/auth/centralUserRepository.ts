@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import type { Pool } from 'pg';
 import { getCentralPool } from '../db/centralPool.js';
 import {
@@ -17,7 +18,7 @@ import type {
  * Şema: database/central/05_auth_accountant.sql + 09_user_login_identifiers.sql
  * Rol enum/davet: 05b_membership_accountant.sql (ayrı)
  * AUTH_PROVIDER=central → CENTRAL_DATABASE_URL zorunlu.
- * Parola: seed `dev:<plaintext>`; üretimde bcrypt.compare TODO.
+ * Parola: bcrypt ($2a$/$2b$/$2y$) veya geçiş için `dev:<plaintext>`.
  */
 export class CentralUserRepository implements UserRepository {
   constructor(private readonly pool: Pool = getCentralPool()) {}
@@ -36,7 +37,7 @@ export class CentralUserRepository implements UserRepository {
     );
     if (!row) return null;
 
-    if (!verifyPasswordDev(password, row.password_hash)) {
+    if (!(await verifyPassword(password, row.password_hash))) {
       return null;
     }
 
@@ -195,14 +196,27 @@ export class CentralUserRepository implements UserRepository {
   }
 }
 
-/** Geliştirme parola kontrolü — prod'da bcrypt ile değiştirilecek */
-function verifyPasswordDev(password: string, passwordHash: string): boolean {
-  // TODO(prod): return await bcrypt.compare(password, passwordHash)
+/** bcrypt veya geçiş dönemi `dev:<plaintext>` */
+export async function verifyPassword(
+  password: string,
+  passwordHash: string,
+): Promise<boolean> {
+  if (!passwordHash) return false;
+
   if (passwordHash.startsWith('dev:')) {
     return passwordHash.slice(4) === password;
   }
+
+  if (
+    passwordHash.startsWith('$2a$') ||
+    passwordHash.startsWith('$2b$') ||
+    passwordHash.startsWith('$2y$')
+  ) {
+    return bcrypt.compare(password, passwordHash);
+  }
+
   console.warn(
-    '[CentralUserRepository] password_hash beklenen biçim: dev:<plaintext> (bcrypt TODO).',
+    '[CentralUserRepository] password_hash beklenen biçim: bcrypt veya dev:<plaintext>.',
   );
   return false;
 }

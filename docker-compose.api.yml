@@ -43,6 +43,10 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-https://finatura.app,https://www.finatura.app,https://app.finatura.app,https://login.finatura.app,https://mm.finatura.app}
       # Docker/Dokploy internal DNS — asla 127.0.0.1 kullanma
       TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://finatura_router:3100}
+      EINVOICE_INTEGRATOR_URL: ${EINVOICE_INTEGRATOR_URL:-http://finatura_einvoice:3400}
+      BILLING_AGENT_URL: ${BILLING_AGENT_URL:-http://finatura_billing:3200}
+      DOCUMENT_AGENT_URL: ${DOCUMENT_AGENT_URL:-http://finatura_document:3300}
+      DEBIT_KONTOR_ON_EINVOICE_SEND: ${DEBIT_KONTOR_ON_EINVOICE_SEND:-true}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
       # OpenRouter OCR LLM (document-agent GET /v1/admin/llm-config)

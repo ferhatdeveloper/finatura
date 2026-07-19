@@ -18,9 +18,17 @@ function boolEnv(name: string, fallback: boolean): boolean {
 
 export type AuthProvider = 'stub' | 'central';
 
-const authProviderRaw = (process.env.AUTH_PROVIDER ?? 'stub').toLowerCase();
-const authProvider: AuthProvider =
-  authProviderRaw === 'central' ? 'central' : 'stub';
+/**
+ * AUTH_PROVIDER açıkça stub|central ise onu kullan.
+ * Aksi halde CENTRAL_DATABASE_URL varsa central (üretim varsayılanı).
+ */
+function resolveAuthProvider(): AuthProvider {
+  const explicit = (process.env.AUTH_PROVIDER ?? '').trim().toLowerCase();
+  if (explicit === 'stub' || explicit === 'central') return explicit;
+  return process.env.CENTRAL_DATABASE_URL?.trim() ? 'central' : 'stub';
+}
+
+const authProvider = resolveAuthProvider();
 
 export const config = {
   port: intEnv('PORT', 3000),
@@ -57,6 +65,18 @@ export const config = {
   tenantRouterUrl:
     process.env.TENANT_ROUTER_URL ?? 'http://finatura_router:3100',
   tenantRouterTimeoutMs: intEnv('TENANT_ROUTER_TIMEOUT_MS', 10_000),
+  /** e-Fatura entegratör (docker-compose.agents.yml) */
+  einvoiceIntegratorUrl:
+    process.env.EINVOICE_INTEGRATOR_URL ?? 'http://finatura_einvoice:3400',
+  /** Kontör / ödeme (docker-compose.agents.yml) */
+  billingAgentUrl:
+    process.env.BILLING_AGENT_URL ?? 'http://finatura_billing:3200',
+  /** OCR document-agent */
+  documentAgentUrl:
+    process.env.DOCUMENT_AGENT_URL ?? 'http://finatura_document:3300',
+  agentProxyTimeoutMs: intEnv('AGENT_PROXY_TIMEOUT_MS', 60_000),
+  /** Başarılı e-fatura gönderiminde billing-agent kontör düşümü */
+  debitKontorOnEinvoiceSend: boolEnv('DEBIT_KONTOR_ON_EINVOICE_SEND', true),
 } as const;
 
 export function assertConfig(): void {

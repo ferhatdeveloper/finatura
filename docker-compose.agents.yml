@@ -1,0 +1,108 @@
+# Finatura agents — Dokploy (berqenas_net, host port YOK)
+#
+# Servisler:
+#   finatura_billing   :3200  — kontör / ödeme
+#   finatura_einvoice  :3400  — e-fatura entegratör
+#   finatura_document  :3300  — OCR
+#   finatura_finteo           — banka poll worker
+#
+# Önkoşul: finatura_pg (+ isteğe bağlı finatura_tenant_pg)
+# Gateway env: BILLING_AGENT_URL / EINVOICE_INTEGRATOR_URL / DOCUMENT_AGENT_URL
+
+services:
+  finatura_billing:
+    build:
+      context: ./services/billing-agent
+      dockerfile: Dockerfile
+    image: finatura-billing:latest
+    restart: unless-stopped
+    expose:
+      - "3200"
+    environment:
+      NODE_ENV: production
+      PORT: "3200"
+      CENTRAL_DATABASE_URL: ${CENTRAL_DATABASE_URL:-postgresql://finatura:${POSTGRES_PASSWORD:-finatura_change_me_in_dokploy}@finatura_pg:5432/finatura_central}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stub}
+      KONTOR_COST_EFATURA_SEND: ${KONTOR_COST_EFATURA_SEND:-2}
+      KONTOR_COST_OCR_SOZLESME: ${KONTOR_COST_OCR_SOZLESME:-1}
+      KONTOR_COST_OCR_KIMLIK: ${KONTOR_COST_OCR_KIMLIK:-1}
+      KONTOR_COST_OCR_TAPU: ${KONTOR_COST_OCR_TAPU:-1}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3200/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - berqenas_net
+
+  finatura_einvoice:
+    build:
+      context: .
+      dockerfile: services/einvoice-integrator/Dockerfile
+    image: finatura-einvoice:latest
+    restart: unless-stopped
+    expose:
+      - "3400"
+    environment:
+      NODE_ENV: production
+      PORT: "3400"
+      EINVOICE_PROVIDER: ${EINVOICE_PROVIDER:-edm}
+      EINVOICE_STUB_MODE: ${EINVOICE_STUB_MODE:-true}
+      DEFAULT_SENDER_VKN: ${DEFAULT_SENDER_VKN:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3400/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - berqenas_net
+
+  finatura_document:
+    build:
+      context: ./services/document-agent
+      dockerfile: Dockerfile
+    image: finatura-document:latest
+    restart: unless-stopped
+    expose:
+      - "3300"
+    environment:
+      NODE_ENV: production
+      PORT: "3300"
+      OCR_PROVIDER: ${OCR_PROVIDER:-tesseract}
+      LLM_ENABLED: ${LLM_ENABLED:-true}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://openrouter.ai/api/v1}
+      LLM_MODEL: ${LLM_MODEL:-openai/gpt-4o-mini}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
+      API_GATEWAY_URL: ${API_GATEWAY_URL:-http://finatura_api:3000}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3300/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - berqenas_net
+
+  finatura_finteo:
+    build:
+      context: .
+      dockerfile: services/finteo-agent/Dockerfile
+    image: finatura-finteo:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      CENTRAL_DATABASE_URL: ${CENTRAL_DATABASE_URL:-postgresql://finatura:${POSTGRES_PASSWORD:-finatura_change_me_in_dokploy}@finatura_pg:5432/finatura_central}
+      FINTEO_CLIENT_MODE: ${FINTEO_CLIENT_MODE:-mock}
+      POLL_INTERVAL_MS: ${POLL_INTERVAL_MS:-600000}
+      POLL_RUN_ON_START: ${POLL_RUN_ON_START:-true}
+    networks:
+      - berqenas_net
+
+networks:
+  berqenas_net:
+    external: true
+    name: berqenas_net

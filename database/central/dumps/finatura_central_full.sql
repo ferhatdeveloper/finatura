@@ -1,12 +1,13 @@
 -- Finatura central full dump (pg_dump)
--- Generated for restore onto finatura_pg / finatura_central
--- DO NOT apply to saas_postgres / kargomkapinda_*
+-- Restore: scripts/vps-restore-central-dump.sh
+-- Target ONLY: finatura_pg / finatura_central
+-- NEVER: saas_postgres / kargomkapinda_*
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict UG43KVMtug1tYUhUxD7lC1NVggREp8B2yMySPYMj1g7qbzRHJoW3eMaM3XhJAIh
+\restrict LRoPZFQVUY7UXE7D0fBaxFCLF90QgSYigH1byvCktrs8EAf0fCnmnvxEK6S4edq
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -946,7 +947,7 @@ COPY public.accountant_access_codes (id, tenant_id, code_hash, accountant_name, 
 --
 
 COPY public.accountant_codes (id, tenant_id, code, label, is_active, expires_at, created_by, created_at, updated_at, revoked_at) FROM stdin;
-1f758dc9-454a-47df-a18b-ae31a74f4ef0	00000000-0000-4000-8000-0000000000aa	MM-DEMO	Demo mali müşavir kodu	t	\N	\N	2026-07-17 10:37:59.296682+00	2026-07-17 10:37:59.296682+00	\N
+1424b31a-01e8-4164-abce-714aebe4af2f	00000000-0000-4000-8000-0000000000aa	MM-DEMO	Demo mali müşavir kodu	t	\N	\N	2026-07-19 14:10:56.188485+00	2026-07-19 14:10:56.188485+00	\N
 \.
 
 
@@ -987,9 +988,9 @@ COPY public.mali_musavir_baglantilari (id, tenant_id, accountant_user_id, invite
 --
 
 COPY public.sectors (id, code, name_tr, description, is_active, created_at, updated_at) FROM stdin;
-6f59c95d-1192-408b-a7e5-85576540c473	oto_galeri	Oto Galeri	İkinci el / galeri araç alım-satım ve stok yönetimi	t	2026-07-17 10:37:58.983218+00	2026-07-17 10:37:58.983218+00
-adcb35f7-0224-4847-bd24-dec2409353a1	kuyumculuk	Kuyumculuk	Altın ve döviz veresiye, kuyumcu cari işlemleri	t	2026-07-17 10:37:58.983218+00	2026-07-17 10:37:58.983218+00
-541dd31f-3f0c-463a-a6fe-ddb30afbd011	emlak	Emlak	Gayrimenkul portföy ve emlakçı cari yönetimi	t	2026-07-17 10:37:58.983218+00	2026-07-17 10:37:58.983218+00
+504d9def-d55a-406e-8616-8fb19cc59d68	oto_galeri	Oto Galeri	İkinci el / galeri araç alım-satım ve stok yönetimi	t	2026-07-19 14:10:55.849446+00	2026-07-19 14:10:55.849446+00
+16289647-f7dd-44c6-9d10-a987e115d1fe	kuyumculuk	Kuyumculuk	Altın ve döviz veresiye, kuyumcu cari işlemleri	t	2026-07-19 14:10:55.849446+00	2026-07-19 14:10:55.849446+00
+76d8a22b-e992-4ac2-a651-234be8cb022b	emlak	Emlak	Gayrimenkul portföy ve emlakçı cari yönetimi	t	2026-07-19 14:10:55.849446+00	2026-07-19 14:10:55.849446+00
 \.
 
 
@@ -998,10 +999,10 @@ adcb35f7-0224-4847-bd24-dec2409353a1	kuyumculuk	Kuyumculuk	Altın ve döviz vere
 --
 
 COPY public.subscription_plans (id, code, name_tr, description, included_kontor, price_amount, currency_code, billing_period, is_active, created_at, updated_at) FROM stdin;
-1f5ed4b1-20a1-4728-84f7-13de377ae537	trial	Deneme	Sınırlı deneme planı	50	0.00	TRY	one_time	t	2026-07-17 10:37:59.032099+00	2026-07-17 10:37:59.032099+00
-f1ef4ac2-8913-4516-a725-ecbf302fdb1f	starter	Başlangıç	Küçük işletmeler için aylık	200	1499.00	TRY	monthly	t	2026-07-17 10:37:59.032099+00	2026-07-17 10:37:59.032099+00
-c2d035b4-0e8c-4505-bd2f-519a62158055	business	İşletme	Yoğun kullanım için aylık	750	3999.00	TRY	monthly	t	2026-07-17 10:37:59.032099+00	2026-07-17 10:37:59.032099+00
-fadfbd5b-ef06-499c-b802-d3ba3fce7f2a	yearly	Yıllık İş	İşletme planının yıllık hali	9000	39990.00	TRY	yearly	t	2026-07-17 10:37:59.032099+00	2026-07-17 10:37:59.032099+00
+40f003f1-e9ed-4aff-a959-9ee916db53b2	trial	Deneme	Sınırlı deneme planı	50	0.00	TRY	one_time	t	2026-07-19 14:10:55.903537+00	2026-07-19 14:10:55.903537+00
+800f4495-b515-4200-8909-c8ee5b23f247	starter	Başlangıç	Küçük işletmeler için aylık	200	1499.00	TRY	monthly	t	2026-07-19 14:10:55.903537+00	2026-07-19 14:10:55.903537+00
+031ec7e3-bfc0-4aa4-8958-5617426d8f24	business	İşletme	Yoğun kullanım için aylık	750	3999.00	TRY	monthly	t	2026-07-19 14:10:55.903537+00	2026-07-19 14:10:55.903537+00
+ef6e247e-a9fc-432b-a0f8-515a22010271	yearly	Yıllık İş	İşletme planının yıllık hali	9000	39990.00	TRY	yearly	t	2026-07-19 14:10:55.903537+00	2026-07-19 14:10:55.903537+00
 \.
 
 
@@ -1010,13 +1011,13 @@ fadfbd5b-ef06-499c-b802-d3ba3fce7f2a	yearly	Yıllık İş	İşletme planının y
 --
 
 COPY public.system_settings (key, value_text, value_json, is_secret, value_ciphertext, encryption_key_id, description, updated_by, created_at, updated_at) FROM stdin;
-llm.enabled	false	{}	f	\N	\N	OCR alan çıkarımı için LLM açık mı	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.provider	openrouter	{}	f	\N	\N	openai | openrouter | anthropic | gemini | openai_compatible	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.base_url	https://openrouter.ai/api/v1	{}	f	\N	\N	OpenAI-compatible base URL	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.model	openai/gpt-4o-mini	{}	f	\N	\N	Model id (OpenRouter: org/model)	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.api_key	\N	{}	t	\N	\N	LLM / OpenRouter API anahtarı	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.http_referer	https://finatura.app	{}	f	\N	\N	OpenRouter HTTP-Referer	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
-llm.app_title	Finatura	{}	f	\N	\N	OpenRouter X-Title	\N	2026-07-17 10:37:59.263269+00	2026-07-17 10:37:59.263269+00
+llm.enabled	false	{}	f	\N	\N	OCR alan çıkarımı için LLM açık mı	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.provider	openrouter	{}	f	\N	\N	openai | openrouter | anthropic | gemini | openai_compatible	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.base_url	https://openrouter.ai/api/v1	{}	f	\N	\N	OpenAI-compatible base URL	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.model	openai/gpt-4o-mini	{}	f	\N	\N	Model id (OpenRouter: org/model)	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.api_key	\N	{}	t	\N	\N	LLM / OpenRouter API anahtarı	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.http_referer	https://finatura.app	{}	f	\N	\N	OpenRouter HTTP-Referer	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
+llm.app_title	Finatura	{}	f	\N	\N	OpenRouter X-Title	\N	2026-07-19 14:10:56.156277+00	2026-07-19 14:10:56.156277+00
 \.
 
 
@@ -1025,6 +1026,7 @@ llm.app_title	Finatura	{}	f	\N	\N	OpenRouter X-Title	\N	2026-07-17 10:37:59.2632
 --
 
 COPY public.tenant_databases (id, tenant_id, db_host, db_port, db_name, db_user, password_ciphertext, encryption_key_id, ssl_mode, is_primary, is_healthy, last_health_check_at, schema_version, notes, created_at, updated_at, deleted_at) FROM stdin;
+4fe6fe05-da18-4c90-a10f-b1cb8909a49b	00000000-0000-4000-8000-0000000000aa	finatura_tenant_pg	5432	tenant_ornek	finatura	plain:finatura_change_me_in_dokploy	dev-plain	disable	t	t	\N	1.0.0	Demo tenant DB — docker-compose.tenant-pg.yml	2026-07-19 14:10:56.256722+00	2026-07-19 14:10:56.256722+00	\N
 \.
 
 
@@ -1041,7 +1043,7 @@ COPY public.tenant_einvoice_providers (id, tenant_id, provider, is_primary, is_a
 --
 
 COPY public.tenant_kontor_balances (tenant_id, balance, reserved, updated_at) FROM stdin;
-00000000-0000-4000-8000-0000000000aa	100.00	0.00	2026-07-17 10:37:59.296191+00
+00000000-0000-4000-8000-0000000000aa	100.00	0.00	2026-07-19 14:10:56.187822+00
 \.
 
 
@@ -1050,9 +1052,9 @@ COPY public.tenant_kontor_balances (tenant_id, balance, reserved, updated_at) FR
 --
 
 COPY public.tenant_memberships (id, tenant_id, user_id, role, is_active, invited_at, joined_at, created_at, updated_at, deleted_at) FROM stdin;
-45dafe61-3960-4b5e-9277-318fc4ae4c1b	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000001	owner	t	\N	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	\N
-586418d1-6292-4441-830d-ab39c1a23514	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000002	accountant	t	\N	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	\N
-dccdf737-8abf-48c2-b723-70fa4ba82607	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000003	admin	t	\N	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	2026-07-17 10:37:59.295081+00	\N
+33a335b5-7587-47cd-a8ce-870374d4ccee	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000001	owner	t	\N	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	\N
+68ece1fa-debb-4901-b470-1c2e4ab9c943	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000002	accountant	t	\N	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	\N
+bd2cd26c-8971-490c-b15d-b19450b9b4a3	00000000-0000-4000-8000-0000000000aa	00000000-0000-4000-8000-000000000003	admin	t	\N	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	2026-07-19 14:10:56.186613+00	\N
 \.
 
 
@@ -1069,7 +1071,7 @@ COPY public.tenant_subscriptions (id, tenant_id, plan_id, status, starts_at, end
 --
 
 COPY public.tenants (id, slug, display_name, legal_name, tax_office, tax_number, sector_id, status, primary_email, primary_phone, timezone, locale, metadata, provisioned_at, suspended_at, cancelled_at, created_at, updated_at, deleted_at, mali_musavir_kodu) FROM stdin;
-00000000-0000-4000-8000-0000000000aa	ornek-galeri	Örnek Oto Galeri Ltd.	Örnek Oto Galeri Limited Şirketi	\N	1234567890	6f59c95d-1192-408b-a7e5-85576540c473	active	demo@finatura.app	+90 555 111 22 33	Europe/Istanbul	tr-TR	{}	2026-07-17 10:37:59.291956+00	\N	\N	2026-07-17 10:37:59.291956+00	2026-07-17 10:37:59.333551+00	\N	DEMO-GALERI
+00000000-0000-4000-8000-0000000000aa	ornek-galeri	Örnek Oto Galeri Ltd.	Örnek Oto Galeri Limited Şirketi	\N	1234567890	504d9def-d55a-406e-8616-8fb19cc59d68	active	demo@finatura.app	+90 555 111 22 33	Europe/Istanbul	tr-TR	{}	2026-07-19 14:10:56.183813+00	\N	\N	2026-07-19 14:10:56.183813+00	2026-07-19 14:10:56.228247+00	\N	DEMO-GALERI
 \.
 
 
@@ -1078,9 +1080,9 @@ COPY public.tenants (id, slug, display_name, legal_name, tax_office, tax_number,
 --
 
 COPY public.users (id, email, password_hash, full_name, is_active, last_login_at, created_at, updated_at, deleted_at, is_platform_admin, phone, phone_digits, tckn, vergi_no) FROM stdin;
-00000000-0000-4000-8000-000000000001	demo@finatura.app	dev:demo1234	Finatura Demo	t	\N	2026-07-17 10:37:59.293945+00	2026-07-17 10:37:59.33198+00	\N	f	+90 555 111 22 33	5551112233	10000000146	1234567890
-00000000-0000-4000-8000-000000000002	mm@finatura.app	dev:mali1234	Ayşe Yılmaz, SMMM	t	\N	2026-07-17 10:37:59.293945+00	2026-07-17 10:37:59.333111+00	\N	f	+90 555 222 33 44	5552223344	10000000154	9876543210
-00000000-0000-4000-8000-000000000003	admin@finatura.app	dev:admin1234	Finatura Superadmin	t	\N	2026-07-17 10:37:59.293945+00	2026-07-17 10:37:59.333373+00	\N	t	+90 555 999 88 77	5559998877	10000000162	1111111111
+00000000-0000-4000-8000-000000000001	demo@finatura.app	$2b$10$yp14k1owEv8znhrp2RU.N.WwwMGti4ZgXjwIB4Q1F0s.VFw5njTRm	Finatura Demo	t	\N	2026-07-19 14:10:56.185581+00	2026-07-19 14:10:56.226011+00	\N	f	+90 555 111 22 33	5551112233	10000000146	1234567890
+00000000-0000-4000-8000-000000000002	mm@finatura.app	$2b$10$wXKZqaEdiNaCl5dC6jWELeRsITmZcUCVG7KBVyAWWliwbqh3eroYK	Ayşe Yılmaz, SMMM	t	\N	2026-07-19 14:10:56.185581+00	2026-07-19 14:10:56.227524+00	\N	f	+90 555 222 33 44	5552223344	10000000154	9876543210
+00000000-0000-4000-8000-000000000003	admin@finatura.app	$2b$10$ViSSJ.NvELU8H3Sa66VptOmisH.3g.I4.OZTlGNmdZVvJMNs45T7e	Finatura Superadmin	t	\N	2026-07-19 14:10:56.185581+00	2026-07-19 14:10:56.227911+00	\N	t	+90 555 999 88 77	5559998877	10000000162	1111111111
 \.
 
 
@@ -1670,5 +1672,5 @@ ALTER TABLE ONLY public.tenants
 -- PostgreSQL database dump complete
 --
 
-\unrestrict UG43KVMtug1tYUhUxD7lC1NVggREp8B2yMySPYMj1g7qbzRHJoW3eMaM3XhJAIh
+\unrestrict LRoPZFQVUY7UXE7D0fBaxFCLF90QgSYigH1byvCktrs8EAf0fCnmnvxEK6S4edq
 
