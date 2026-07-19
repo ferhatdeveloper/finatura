@@ -12,6 +12,9 @@
 #   JWT_SECRET=<güçlü-32+>
 #   AUTH_PROVIDER=central
 #   CENTRAL_DATABASE_URL=postgresql://finatura:<şifre>@finatura_pg:5432/finatura_central
+#   OPENROUTER_API_KEY=sk-or-v1-...
+#   LLM_ENABLED=true
+#   LLM_PROVIDER=openrouter
 #
 # Yerel: docker compose -f docker-compose.api.yml -f docker-compose.api.local.yml up -d --build
 
@@ -42,6 +45,12 @@ services:
       TENANT_ROUTER_URL: ${TENANT_ROUTER_URL:-http://finatura_router:3100}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-}
+      # OpenRouter OCR LLM (document-agent GET /v1/admin/llm-config)
+      LLM_ENABLED: ${LLM_ENABLED:-true}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openrouter}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://openrouter.ai/api/v1}
+      LLM_MODEL: ${LLM_MODEL:-openai/gpt-4o-mini}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
       interval: 30s
