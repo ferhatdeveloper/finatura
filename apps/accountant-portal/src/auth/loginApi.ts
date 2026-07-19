@@ -6,12 +6,15 @@ import { AuthError } from "./types";
 export const MOCK_ACCOUNTANT = {
   email: "mm@finatura.app",
   password: "mali1234",
+  phone: "5552223344",
+  tckn: "10000000154",
+  vergiNo: "9876543210",
   maliMusavirKodu: "MM-DEMO",
   firmaKodu: "ORNEK-GALERI",
 } as const;
 
 const MOCK_USER: AuthUser = {
-  id: "00000000-0000-4000-8000-0000000000mm",
+  id: "00000000-0000-4000-8000-000000000002",
   email: MOCK_ACCOUNTANT.email,
   displayName: "Ayşe Yılmaz, SMMM",
   firmaUnvan: "Örnek Oto Galeri Ltd. Şti.",
@@ -34,6 +37,21 @@ function authMode(): "auto" | "mock" | "gateway" {
 
 function b64url(input: string): string {
   return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function digitsOnly(v: string): string {
+  return v.replace(/\D/g, "");
+}
+
+function normalizePhone(v: string): string {
+  let d = digitsOnly(v);
+  if (d.startsWith("90") && d.length === 12) d = d.slice(2);
+  if (d.startsWith("0") && d.length === 11) d = d.slice(1);
+  return d;
+}
+
+function resolveIdentifier(req: LoginRequest): string {
+  return (req.identifier || req.email || "").trim();
 }
 
 /** Yalnızca VITE_AUTH_MODE=mock — gerçek imza yok */
@@ -72,9 +90,10 @@ function normalizeUser(
   raw: Record<string, unknown>,
   req: LoginRequest,
 ): AuthUser {
+  const id = resolveIdentifier(req);
   return {
     id: String(raw.id ?? ""),
-    email: String(raw.email ?? req.email),
+    email: String(raw.email ?? (id.includes("@") ? id : MOCK_ACCOUNTANT.email)),
     displayName: String(raw.displayName ?? raw.email ?? "Kullanıcı"),
     firmaUnvan: String(
       raw.firmaUnvan ?? raw.tenantSlug ?? req.firmaKodu ?? "Mükellef",
@@ -88,40 +107,40 @@ function normalizeUser(
 }
 
 function mockLogin(req: LoginRequest): LoginResponse {
-  const email = req.email.trim().toLowerCase();
-  const mm = req.maliMusavirKodu?.trim().toUpperCase() ?? "";
-  const fk = req.firmaKodu?.trim().toUpperCase() ?? "";
-  const emailOk = email === MOCK_ACCOUNTANT.email;
+  const id = resolveIdentifier(req);
+  const phone = normalizePhone(id);
+  const digits = digitsOnly(id);
+  const idOk =
+    id.toLowerCase() === MOCK_ACCOUNTANT.email ||
+    phone === MOCK_ACCOUNTANT.phone ||
+    digits === MOCK_ACCOUNTANT.tckn ||
+    digits === MOCK_ACCOUNTANT.vergiNo;
   const passOk = req.password === MOCK_ACCOUNTANT.password;
-  const mmOk = !mm || mm === MOCK_ACCOUNTANT.maliMusavirKodu;
-  const fkOk = !fk || fk === MOCK_ACCOUNTANT.firmaKodu;
-  const codeOk =
-    (Boolean(mm) && mm === MOCK_ACCOUNTANT.maliMusavirKodu) ||
-    (Boolean(fk) && fk === MOCK_ACCOUNTANT.firmaKodu);
 
-  if (!emailOk || !passOk || !mmOk || !fkOk || !codeOk) {
-    throw new AuthError("invalid_credentials", "E-posta, şifre veya kod hatalı.");
+  if (!idOk || !passOk) {
+    throw new AuthError(
+      "invalid_credentials",
+      "Kullanıcı adı veya şifre hatalı.",
+    );
   }
 
   const user: AuthUser = {
     ...MOCK_USER,
-    maliMusavirKodu: mm || MOCK_ACCOUNTANT.maliMusavirKodu,
-    firmaKodu: fk || MOCK_ACCOUNTANT.firmaKodu,
+    maliMusavirKodu: req.maliMusavirKodu || MOCK_ACCOUNTANT.maliMusavirKodu,
+    firmaKodu: req.firmaKodu || MOCK_ACCOUNTANT.firmaKodu,
   };
 
   return { user, ...issueStubTokens(user) };
 }
 
 async function gatewayLogin(req: LoginRequest): Promise<LoginResponse> {
+  const identifier = resolveIdentifier(req);
   const body: Record<string, string> = {
-    email: req.email.trim(),
+    identifier,
     password: req.password,
   };
   const code = req.firmaKodu?.trim() || req.maliMusavirKodu?.trim();
   if (code) body.firmaKodu = code;
-  if (req.maliMusavirKodu?.trim()) {
-    body.maliMusavirKodu = req.maliMusavirKodu.trim();
-  }
 
   const res = await fetch(`${gatewayBaseUrl()}/auth/login`, {
     method: "POST",
@@ -136,7 +155,7 @@ async function gatewayLogin(req: LoginRequest): Promise<LoginResponse> {
       typeof data.message === "string"
         ? data.message
         : res.status === 401
-          ? "E-posta veya şifre hatalı."
+          ? "Kullanıcı adı veya şifre hatalı."
           : "Giriş başarısız.";
     throw new AuthError(
       typeof data.error === "string" ? data.error : "login_failed",
@@ -181,7 +200,6 @@ export async function loginWithGatewayOrMock(
     return { response: await gatewayLogin(req), source: "gateway" };
   }
 
-  // auto: gateway dene → başarısızsa mock (yalnızca açıkça auto)
   try {
     return { response: await gatewayLogin(req), source: "gateway" };
   } catch (gatewayErr) {

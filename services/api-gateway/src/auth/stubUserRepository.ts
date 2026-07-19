@@ -1,4 +1,9 @@
 import { config } from '../config.js';
+import {
+  digitsOnly,
+  normalizeLoginIdentifier,
+  normalizeTrPhoneDigits,
+} from './loginIdentifier.js';
 import type {
   AuthUserRecord,
   LoginTenantHint,
@@ -8,11 +13,15 @@ import type {
 type StubRecord = AuthUserRecord & {
   password: string;
   firmaKodu: string;
+  phoneDigits?: string;
+  tckn?: string;
+  vergiNo?: string;
 };
 
 /**
  * Geliştirme stub kullanıcı deposu — CENTRAL_DATABASE_URL olmadan çalışır.
  * Ortam değişkenleri: AUTH_STUB_* (+ opsiyonel AUTH_STUB_ACCOUNTANT_*)
+ * Identifier: e-posta | telefon | TCKN | vergi no
  */
 export class StubUserRepository implements UserRepository {
   private listStubs(): StubRecord[] {
@@ -30,12 +39,15 @@ export class StubUserRepository implements UserRepository {
       password: config.authStub.password,
       firmaKodu: config.authStub.firmaKodu,
       isPlatformAdmin: platformAdmin,
+      phoneDigits: process.env.AUTH_STUB_PHONE_DIGITS ?? '5551112233',
+      tckn: process.env.AUTH_STUB_TCKN ?? '10000000146',
+      vergiNo: process.env.AUTH_STUB_VERGI_NO ?? '1234567890',
     };
 
     const accountant: StubRecord = {
       userId:
         process.env.AUTH_STUB_ACCOUNTANT_USER_ID ??
-        '00000000-0000-4000-8000-0000000000mm',
+        '00000000-0000-4000-8000-000000000002',
       email: process.env.AUTH_STUB_ACCOUNTANT_EMAIL ?? 'mm@finatura.app',
       displayName:
         process.env.AUTH_STUB_ACCOUNTANT_DISPLAY_NAME ?? 'Ayşe Yılmaz, SMMM',
@@ -48,12 +60,15 @@ export class StubUserRepository implements UserRepository {
         process.env.AUTH_STUB_ACCOUNTANT_CODE ??
         'MM-DEMO',
       isPlatformAdmin: false,
+      phoneDigits: process.env.AUTH_STUB_ACCOUNTANT_PHONE_DIGITS ?? '5552223344',
+      tckn: process.env.AUTH_STUB_ACCOUNTANT_TCKN ?? '10000000154',
+      vergiNo: process.env.AUTH_STUB_ACCOUNTANT_VERGI_NO ?? '9876543210',
     };
 
     const superadmin: StubRecord = {
       userId:
         process.env.AUTH_STUB_SUPERADMIN_USER_ID ??
-        '00000000-0000-4000-8000-0000000000sa',
+        '00000000-0000-4000-8000-000000000003',
       email: process.env.AUTH_STUB_SUPERADMIN_EMAIL ?? 'admin@finatura.app',
       displayName: process.env.AUTH_STUB_SUPERADMIN_NAME ?? 'Finatura Superadmin',
       tenantId: config.authStub.tenantId,
@@ -62,19 +77,22 @@ export class StubUserRepository implements UserRepository {
       password: process.env.AUTH_STUB_SUPERADMIN_PASSWORD ?? 'admin1234',
       firmaKodu: config.authStub.firmaKodu,
       isPlatformAdmin: true,
+      phoneDigits: process.env.AUTH_STUB_SUPERADMIN_PHONE_DIGITS ?? '5559998877',
+      tckn: process.env.AUTH_STUB_SUPERADMIN_TCKN ?? '10000000162',
+      vergiNo: process.env.AUTH_STUB_SUPERADMIN_VERGI_NO ?? '1111111111',
     };
 
     return [owner, accountant, superadmin];
   }
 
   async authenticate(
-    email: string,
+    identifier: string,
     password: string,
     tenantHint?: LoginTenantHint,
   ): Promise<AuthUserRecord | null> {
-    const emailNorm = email.trim().toLowerCase();
+    const id = normalizeLoginIdentifier(identifier);
     const user = this.listStubs().find(
-      (u) => u.email.toLowerCase() === emailNorm && u.password === password,
+      (u) => this.matchesIdentifier(u, id) && u.password === password,
     );
     if (!user) return null;
     if (tenantHint && !this.matchesTenantHint(user, tenantHint)) {
@@ -106,6 +124,25 @@ export class StubUserRepository implements UserRepository {
       tenantIdOrSlug === user.tenantSlug ||
       tenantIdOrSlug.toUpperCase() === user.firmaKodu.toUpperCase()
     );
+  }
+
+  private matchesIdentifier(
+    user: StubRecord,
+    id: ReturnType<typeof normalizeLoginIdentifier>,
+  ): boolean {
+    if (id.email && user.email.toLowerCase() === id.email) return true;
+    if (id.phoneDigits && user.phoneDigits === id.phoneDigits) return true;
+    if (id.tckn && user.tckn === id.tckn) return true;
+    if (id.vergiNo && user.vergiNo === id.vergiNo) return true;
+
+    // Ham e-posta eşitliği (normalize e-posta üretmese bile)
+    const rawLower = id.raw.toLowerCase();
+    if (rawLower === user.email.toLowerCase()) return true;
+
+    const rawPhone = normalizeTrPhoneDigits(digitsOnly(id.raw));
+    if (rawPhone && user.phoneDigits === rawPhone) return true;
+
+    return false;
   }
 
   private matchesTenantHint(

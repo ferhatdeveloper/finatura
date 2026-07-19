@@ -14,24 +14,32 @@ export interface LoginResult {
 
 /**
  * POST /auth/login
- * Body (hazır): { email, password, firmaKodu }
- * Gateway şu an email+password zorunlu; firmaKodu tenant seçimi için gönderilir.
+ * Body: { identifier, password } — identifier: e-posta | telefon | TCKN | VKN
+ * Geriye uyum: email alanı da kabul edilir.
  */
 export async function login(
-  email: string,
+  identifier: string,
   password: string,
-  firmaKodu: string,
+  firmaKodu?: string,
 ): Promise<LoginResult> {
   if (apiConfig.useMock) {
-    const user = mockLogin(email, password, firmaKodu);
+    const user = mockLogin(identifier, password, firmaKodu);
     const session: Session = {
       user,
       accessToken: "mock-access-token",
       refreshToken: "mock-refresh-token",
-      firmaKodu: firmaKodu.trim().toLowerCase() || user.tenantSlug,
+      firmaKodu: (firmaKodu ?? "").trim().toLowerCase() || user.tenantSlug,
     };
     saveSession(session);
     return { session, source: "mock" };
+  }
+
+  const body: Record<string, string> = {
+    identifier: identifier.trim(),
+    password,
+  };
+  if (firmaKodu?.trim()) {
+    body.firmaKodu = firmaKodu.trim();
   }
 
   const data = await gatewayFetch<{
@@ -40,19 +48,14 @@ export async function login(
     refreshToken: string;
   }>(endpoints.login, {
     method: "POST",
-    body: JSON.stringify({
-      email,
-      password,
-      firmaKodu: firmaKodu.trim(),
-      tenantSlug: firmaKodu.trim(),
-    }),
+    body: JSON.stringify(body),
   });
 
   const session: Session = {
     user: data.user,
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-    firmaKodu: firmaKodu.trim() || data.user.tenantSlug,
+    firmaKodu: (firmaKodu ?? "").trim() || data.user.tenantSlug,
   };
   saveSession(session);
   return { session, source: "live" };

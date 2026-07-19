@@ -15,14 +15,11 @@ export function LoginPage() {
       ? (location.state as { from: string }).from
       : "/";
 
-  const [email, setEmail] = useState<string>(
+  const [identifier, setIdentifier] = useState<string>(
     apiConfig.useMock ? MOCK_DEMO.email : "",
   );
   const [password, setPassword] = useState<string>(
     apiConfig.useMock ? MOCK_DEMO.password : "",
-  );
-  const [firmaKodu, setFirmaKodu] = useState<string>(
-    apiConfig.useMock ? MOCK_DEMO.firmaKodu : "",
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,7 +33,7 @@ export function LoginPage() {
     setError(null);
     setBusy(true);
     try {
-      await login(email, password, firmaKodu);
+      await login(identifier, password);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Giriş başarısız");
@@ -70,18 +67,19 @@ export function LoginPage() {
             <p className="login-eyebrow">Güvenli giriş</p>
             <h2>Operasyon paneli</h2>
             <p className="lede">
-              Firma kodunuzla doğru çalışma alanına bağlanın.
+              E-posta, telefon, TC kimlik veya vergi no ile giriş yapın.
             </p>
           </header>
 
           <label className="field">
-            <span>E-posta</span>
+            <span>Kullanıcı adı</span>
             <input
-              type="email"
+              type="text"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="e-posta / telefon / TCKN / vergi no"
             />
           </label>
 
@@ -96,18 +94,6 @@ export function LoginPage() {
             />
           </label>
 
-          <label className="field">
-            <span>Firma kodu</span>
-            <input
-              type="text"
-              autoComplete="organization"
-              required
-              value={firmaKodu}
-              onChange={(e) => setFirmaKodu(e.target.value)}
-              placeholder="ör. ornek"
-            />
-          </label>
-
           {error ? <p className="form-error">{error}</p> : null}
 
           <button type="submit" className="btn-primary" disabled={busy}>
@@ -116,7 +102,7 @@ export function LoginPage() {
 
           <p className="login-hint">
             {apiConfig.useMock
-              ? `Demo: ${MOCK_DEMO.email} / ${MOCK_DEMO.password} / ${MOCK_DEMO.firmaKodu}`
+              ? `Demo: ${MOCK_DEMO.email} veya ${MOCK_DEMO.phone} / ${MOCK_DEMO.password}`
               : `API: ${apiConfig.gatewayUrl}/auth/login`}
           </p>
         </form>

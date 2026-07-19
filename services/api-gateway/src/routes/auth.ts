@@ -1,5 +1,10 @@
 import { Router } from 'express';
 import { issueTokenPair, verifyRefreshToken } from '../auth/jwt.js';
+import {
+  extractLoginIdentifier,
+  hasLookupKey,
+  normalizeLoginIdentifier,
+} from '../auth/loginIdentifier.js';
 import { authenticateUser, findUserById } from '../auth/stubUsers.js';
 import type { LoginTenantHint } from '../auth/userRepository.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -45,31 +50,41 @@ function issueAuthTokens(user: {
 
 /**
  * SaaS girişi — UserRepository (stub | central) üzerinden.
- * Body: email, password; opsiyonel firmaKodu | tenantSlug | tenantId.
- * Üretim: AUTH_PROVIDER=central + public.users + bcrypt.
+ * Body: identifier (veya username / email) + password;
+ * opsiyonel firmaKodu | tenantSlug | tenantId.
+ * Identifier: e-posta | telefon | TCKN | vergi no.
  */
 authRouter.post('/auth/login', async (req, res, next) => {
   try {
-    const email = typeof req.body?.email === 'string' ? req.body.email : '';
+    const identifier = extractLoginIdentifier(req.body);
     const password =
       typeof req.body?.password === 'string' ? req.body.password : '';
     const tenantHint = parseTenantHint(req.body);
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       res.status(400).json({
         error: 'invalid_request',
-        message: 'email ve password zorunludur',
+        message: 'kullanıcı adı (identifier) ve password zorunludur',
       });
       return;
     }
 
-    const user = await authenticateUser(email, password, tenantHint);
+    if (!hasLookupKey(normalizeLoginIdentifier(identifier))) {
+      res.status(400).json({
+        error: 'invalid_request',
+        message:
+          'Geçerli e-posta, telefon, TC kimlik veya vergi numarası girin',
+      });
+      return;
+    }
+
+    const user = await authenticateUser(identifier, password, tenantHint);
     if (!user) {
       res.status(401).json({
         error: 'invalid_credentials',
         message: tenantHint
-          ? 'E-posta, şifre veya firma kodu hatalı'
-          : 'E-posta veya şifre hatalı',
+          ? 'Kullanıcı adı, şifre veya firma kodu hatalı'
+          : 'Kullanıcı adı veya şifre hatalı',
       });
       return;
     }

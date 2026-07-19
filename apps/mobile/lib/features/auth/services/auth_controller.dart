@@ -56,9 +56,9 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<bool> login({
-    required String email,
+    required String identifier,
     required String password,
-    required String firmaKodu,
+    String? firmaKodu,
   }) async {
     _busy = true;
     _error = null;
@@ -66,7 +66,7 @@ class AuthController extends ChangeNotifier {
 
     try {
       final session = await _api.login(
-        email: email,
+        identifier: identifier,
         password: password,
         firmaKodu: firmaKodu,
       );

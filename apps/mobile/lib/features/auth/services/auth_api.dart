@@ -30,15 +30,18 @@ class AuthApi {
   String get _refreshUrl => '$baseUrl/auth/refresh';
 
   Future<AuthSession> login({
-    required String email,
+    required String identifier,
     required String password,
-    required String firmaKodu,
+    String? firmaKodu,
   }) async {
     final body = <String, dynamic>{
-      'email': email.trim(),
+      'identifier': identifier.trim(),
       'password': password,
-      'firmaKodu': firmaKodu.trim(),
     };
+    final code = firmaKodu?.trim() ?? '';
+    if (code.isNotEmpty) {
+      body['firmaKodu'] = code;
+    }
 
     try {
       final response = await _client
@@ -62,7 +65,7 @@ class AuthApi {
     } on AuthException {
       rethrow;
     } catch (_) {
-      if (allowMock && _isDemoCredentials(email, password, firmaKodu)) {
+      if (allowMock && _isDemoCredentials(identifier, password)) {
         return _demoSession();
       }
       throw const AuthException(
@@ -127,10 +130,21 @@ class AuthApi {
     }
   }
 
-  bool _isDemoCredentials(String email, String password, String firmaKodu) {
-    return email.trim().toLowerCase() == ApiConfig.demoEmail &&
-        password == ApiConfig.demoPassword &&
-        firmaKodu.trim().toUpperCase() == ApiConfig.demoFirmaKodu;
+  bool _isDemoCredentials(String identifier, String password) {
+    if (password != ApiConfig.demoPassword) return false;
+    final raw = identifier.trim().toLowerCase();
+    final digits = identifier.replaceAll(RegExp(r'\D'), '');
+    var phone = digits;
+    if (phone.startsWith('90') && phone.length == 12) {
+      phone = phone.substring(2);
+    }
+    if (phone.startsWith('0') && phone.length == 11) {
+      phone = phone.substring(1);
+    }
+    return raw == ApiConfig.demoEmail ||
+        phone == ApiConfig.demoPhone ||
+        digits == ApiConfig.demoTckn ||
+        digits == ApiConfig.demoVergiNo;
   }
 
   AuthSession _demoSession() {

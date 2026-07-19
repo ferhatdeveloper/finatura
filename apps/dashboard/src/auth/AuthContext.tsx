@@ -17,11 +17,7 @@ import {
 interface AuthContextValue {
   session: Session | null;
   isAuthenticated: boolean;
-  login: (
-    email: string,
-    password: string,
-    firmaKodu: string,
-  ) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -33,13 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loadSession();
   });
 
-  const login = useCallback(
-    async (email: string, password: string, firmaKodu: string) => {
-      const { session: next } = await apiLogin(email, password, firmaKodu);
-      setSession(next);
-    },
-    [],
-  );
+  const login = useCallback(async (identifier: string, password: string) => {
+    const { session: next } = await apiLogin(identifier, password);
+    setSession(next);
+  }, []);
 
   const logout = useCallback(() => {
     apiLogout();

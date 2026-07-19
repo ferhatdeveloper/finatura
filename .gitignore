@@ -73,6 +73,8 @@ temp/
 docker-data/
 
 # --- Cursor / ajan ---
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 .agent/
 *.canvas.tsx

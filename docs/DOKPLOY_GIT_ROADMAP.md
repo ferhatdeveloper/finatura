@@ -87,8 +87,10 @@ API stub ayakta (`AUTH_PROVIDER=stub`, Postgres yok).
 ### 4.1 Stub → Central auth
 
 - [x] Compose: `./docker-compose.pg.yml` (`finatura_pg`, volume `finatura_pg_data`, `berqenas_net`, **host port yok**)
-- [x] Init: `database/central/*.sql` (+ `08_seed_demo.sql`)
+- [x] Init: `database/central/*.sql` (+ `08_seed_demo.sql` + `09_user_login_identifiers.sql`)
+- [x] Login: tek alan `identifier` = e-posta | telefon | TCKN | vergi no + `password` (`firmaKodu` opsiyonel)
 - [x] `finatura-api` varsayılan: `AUTH_PROVIDER=central`, `CENTRAL_DATABASE_URL=…@finatura_pg:5432/finatura_central`
+- [ ] Mevcut `finatura_pg_data` volume’unda: `09_user_login_identifiers.sql` — **agent bu ortamdan uygular** (kural: `.cursor/rules/finatura-sql-execution.mdc`; kullanıcıya manuel bırakma)
 - [ ] Dokploy’da **yeni Application** oluştur: Compose Path = `./docker-compose.pg.yml` · Domain yok · env `POSTGRES_PASSWORD`
 - [ ] `finatura-api` env’de aynı `POSTGRES_PASSWORD` / tam `CENTRAL_DATABASE_URL` + güçlü `JWT_SECRET`
 - [ ] Redeploy sırası: önce `finatura-pg` (healthy), sonra `finatura-api`

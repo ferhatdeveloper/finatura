@@ -32,8 +32,8 @@ INSERT INTO public.users (id, email, password_hash, full_name, is_active, is_pla
 SELECT v.id, v.email, v.password_hash, v.full_name, true, v.is_platform_admin
 FROM (VALUES
     ('00000000-0000-4000-8000-000000000001'::uuid, 'demo@finatura.app', 'dev:demo1234', 'Finatura Demo', false),
-    ('00000000-0000-4000-8000-0000000000mm'::uuid, 'mm@finatura.app', 'dev:mali1234', 'Ayşe Yılmaz, SMMM', false),
-    ('00000000-0000-4000-8000-0000000000sa'::uuid, 'admin@finatura.app', 'dev:admin1234', 'Finatura Superadmin', true)
+    ('00000000-0000-4000-8000-000000000002'::uuid, 'mm@finatura.app', 'dev:mali1234', 'Ayşe Yılmaz, SMMM', false),
+    ('00000000-0000-4000-8000-000000000003'::uuid, 'admin@finatura.app', 'dev:admin1234', 'Finatura Superadmin', true)
 ) AS v(id, email, password_hash, full_name, is_platform_admin)
 WHERE NOT EXISTS (
     SELECT 1 FROM public.users u
@@ -45,7 +45,7 @@ INSERT INTO public.tenant_memberships (tenant_id, user_id, role, is_active, join
 SELECT
     '00000000-0000-4000-8000-0000000000aa'::uuid,
     u.id,
-    v.role,
+    v.role::public.membership_role,
     true,
     now()
 FROM (VALUES

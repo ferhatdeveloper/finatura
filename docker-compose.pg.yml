@@ -18,7 +18,8 @@
 # Bağlantı (api-gateway / diğer finatura_* servisleri):
 #   CENTRAL_DATABASE_URL=postgresql://finatura:<şifre>@finatura_pg:5432/finatura_central
 #
-# Init: database/central/*.sql (yalnızca volume ilk oluştuğunda)
+# Init: database/central/*.sql (01–09; yalnızca volume ilk oluştuğunda)
+# Mevcut volume: 09_user_login_identifiers.sql’i psql ile manuel çalıştırın
 
 services:
   finatura_pg:

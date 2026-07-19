@@ -17,7 +17,7 @@ const _text = Color(0xFF13221D);
 const _muted = Color(0xFF4A6258);
 const _line = Color(0xFFC5D4CC);
 
-/// E-posta, şifre, firma kodu ile SaaS girişi.
+/// Tek kullanıcı adı (e-posta / telefon / TCKN / vergi) + şifre ile SaaS girişi.
 /// Dashboard LoginPage ile aynı gece-zümrüt / pirinç marka dili.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -35,16 +35,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController(text: ApiConfig.demoEmail);
+  final _identifierCtrl = TextEditingController(text: ApiConfig.demoEmail);
   final _passwordCtrl = TextEditingController(text: ApiConfig.demoPassword);
-  final _firmaCtrl = TextEditingController(text: ApiConfig.demoFirmaKodu);
   bool _obscure = true;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _identifierCtrl.dispose();
     _passwordCtrl.dispose();
-    _firmaCtrl.dispose();
     super.dispose();
   }
 
@@ -53,9 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
     FocusScope.of(context).unfocus();
 
     final ok = await widget.auth.login(
-      email: _emailCtrl.text,
+      identifier: _identifierCtrl.text,
       password: _passwordCtrl.text,
-      firmaKodu: _firmaCtrl.text,
     );
 
     if (!mounted) return;
@@ -125,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildFormCard(bool busy) {
     final hint =
-        'Demo: ${ApiConfig.demoEmail} / ${ApiConfig.demoPassword} / ${ApiConfig.demoFirmaKodu}';
+        'Demo: ${ApiConfig.demoEmail} veya ${ApiConfig.demoPhone} / ${ApiConfig.demoPassword}';
 
     return Form(
       key: _formKey,
@@ -177,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Firma kodunuzla doğru çalışma alanına bağlanın.',
+              'E-posta, telefon, TC veya vergi no ile giriş yapın.',
               style: TextStyle(
                 color: _muted,
                 fontSize: 14.5,
@@ -186,22 +183,23 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 22),
             _LabeledField(
-              label: 'E-posta',
+              label: 'Kullanıcı adı',
               child: TextFormField(
-                controller: _emailCtrl,
+                controller: _identifierCtrl,
                 enabled: !busy,
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
+                keyboardType: TextInputType.text,
+                autofillHints: const [AutofillHints.username],
                 textInputAction: TextInputAction.next,
                 style: const TextStyle(
                   color: _text,
                   fontWeight: FontWeight.w500,
                 ),
-                decoration: _inputDecoration(),
+                decoration: _inputDecoration(
+                  hint: 'e-posta / telefon / TCKN / vergi no',
+                ),
                 validator: (v) {
                   final value = v?.trim() ?? '';
-                  if (value.isEmpty) return 'E-posta gerekli';
-                  if (!value.contains('@')) return 'Geçerli bir e-posta girin';
+                  if (value.isEmpty) return 'Kullanıcı adı gerekli';
                   return null;
                 },
               ),
@@ -214,7 +212,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 enabled: !busy,
                 obscureText: _obscure,
                 autofillHints: const [AutofillHints.password],
-                textInputAction: TextInputAction.next,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => busy ? null : _submit(),
                 style: const TextStyle(
                   color: _text,
                   fontWeight: FontWeight.w500,
@@ -235,28 +234,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Şifre gerekli';
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(height: 14),
-            _LabeledField(
-              label: 'Firma kodu',
-              child: TextFormField(
-                controller: _firmaCtrl,
-                enabled: !busy,
-                textCapitalization: TextCapitalization.characters,
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => busy ? null : _submit(),
-                style: const TextStyle(
-                  color: _text,
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: _inputDecoration(hint: 'ör. ornek'),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return 'Firma kodu gerekli';
-                  }
                   return null;
                 },
               ),
