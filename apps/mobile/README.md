@@ -47,6 +47,17 @@ flutter run -d chrome \
 
 `camera`, `permission_handler`, `image_picker` aktif. AndroidManifest / Info.plist kamera + galeri + `INTERNET` izinleri tanımlı.
 
+## Android APK (telefon)
+
+```bash
+# Flutter + Android SDK gerekir
+bash scripts/build-mobile-apk.sh
+# Çıktı: apps/mobile/dist/finatura-0.1.0-release.apk
+```
+
+Telefona kurulum: APK dosyasını telefona kopyala → “Bilinmeyen kaynaklardan yükleme”ne izin ver → kur.  
+API varsayılanı: `https://api.finatura.app`. Demo: `demo@finatura.app` / `demo1234`.
+
 ## Flutter Web (yerel)
 
 ```bash
