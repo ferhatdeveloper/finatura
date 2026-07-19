@@ -156,6 +156,7 @@ export function mockCariOptions(): CariOption[] {
   }));
 }
 
+/** TR banka örnekleri — finteo-agent/fixtures/bank-transactions.tr.json ile uyumlu */
 export function mockSettlements(): SettlementItem[] {
   return [
     {
@@ -167,7 +168,8 @@ export function mockSettlements(): SettlementItem[] {
       transactionAt: "2026-07-14T11:22:00",
       matchStatus: "unmatched",
       counterpartyName: "AHMET YILMAZ",
-      description: "34 ABC 123 kapora / AHMET YILMAZ",
+      description:
+        "HAVALE/EFT GELEN 34 ABC 123 ARAC BEDELI GONDEREN: AHMET YILMAZ TCKN:10000000146",
     },
     {
       id: "btx-002",
@@ -177,8 +179,8 @@ export function mockSettlements(): SettlementItem[] {
       currencyCode: "TRY",
       transactionAt: "2026-07-13T16:05:00",
       matchStatus: "unmatched",
-      counterpartyName: "SELİN KARACA",
-      description: "Ada 412 Parsel 7 bakiye",
+      counterpartyName: "SELIN KARACA",
+      description: "EFT GELEN ADA 412 PARSEL 7 KAPORA / SELIN KARACA",
     },
     {
       id: "btx-003",
@@ -188,8 +190,32 @@ export function mockSettlements(): SettlementItem[] {
       currencyCode: "TRY",
       transactionAt: "2026-07-12T09:40:00",
       matchStatus: "unmatched",
-      counterpartyName: "ALTIN HAS TAKAS",
-      description: "Has 12.40 gr karşılığı havale",
+      counterpartyName: "HAS ALTIN TAKAS",
+      description: "HAVALE GELEN HAS 12,40 GR KARSILIGI / HAS ALTIN TAKAS",
+    },
+    {
+      id: "btx-005",
+      bankAccountAlias: "Ziraat TL",
+      direction: "inbound",
+      amount: 250000,
+      currencyCode: "TRY",
+      transactionAt: "2026-07-14T12:00:00",
+      matchStatus: "unmatched",
+      counterpartyName: "ORNEK FILO KIRALAMA A.S.",
+      description:
+        "GELEN EFT VKN 1234567890 ORNEK FILO KIRALAMA A.S. FATURA BEDELI",
+    },
+    {
+      id: "btx-006",
+      bankAccountAlias: "Garanti İşletme",
+      direction: "inbound",
+      amount: 50000,
+      currencyCode: "TRY",
+      transactionAt: "2026-07-14T13:10:00",
+      matchStatus: "unmatched",
+      counterpartyName: "AHMET YILMAZ",
+      description:
+        "HAVALE/EFT 34 ABC 123 KALAN BAKİYE GONDEREN AHMET YILMAZ",
     },
     {
       id: "btx-004",
@@ -199,8 +225,19 @@ export function mockSettlements(): SettlementItem[] {
       currencyCode: "TRY",
       transactionAt: "2026-07-11T14:10:00",
       matchStatus: "matched",
-      counterpartyName: "NOTER ÖDEMESİ",
-      description: "Noter harç",
+      counterpartyName: "ISTANBUL 12 NOTERLIGI",
+      description: "EFT GIDEN NOTER HARC VE DONER SERMAYE",
+    },
+    {
+      id: "btx-007",
+      bankAccountAlias: "Yapı Kredi TL",
+      direction: "inbound",
+      amount: 1500,
+      currencyCode: "TRY",
+      transactionAt: "2026-07-14T13:40:00",
+      matchStatus: "unmatched",
+      counterpartyName: "BILINMEYEN GONDERICI",
+      description: "GELEN HAVALE REFNO 998877",
     },
   ];
 }

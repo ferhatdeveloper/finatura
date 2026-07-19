@@ -30,6 +30,8 @@ class MockSettlementData {
     ),
   ];
 
+  /// TR banka örnekleri — finteo-agent/fixtures/bank-transactions.tr.json
+    /// TR banka örnekleri — finteo-agent/fixtures/bank-transactions.tr.json
   static final List<BankTransaction> inboundUnmatched = [
     BankTransaction(
       id: 'btx-001',
@@ -40,7 +42,8 @@ class MockSettlementData {
       transactionAt: DateTime(2026, 7, 14, 11, 22),
       matchStatus: BankTxMatchStatus.unmatched,
       counterpartyName: 'AHMET YILMAZ',
-      description: '34 ABC 123 kapora / AHMET YILMAZ',
+      description:
+          'HAVALE/EFT GELEN 34 ABC 123 ARAC BEDELI GONDEREN: AHMET YILMAZ TCKN:10000000146',
     ),
     BankTransaction(
       id: 'btx-002',
@@ -50,8 +53,8 @@ class MockSettlementData {
       currencyCode: 'TRY',
       transactionAt: DateTime(2026, 7, 13, 16, 5),
       matchStatus: BankTxMatchStatus.unmatched,
-      counterpartyName: 'SELİN KARACA',
-      description: 'Ada 412 Parsel 7 bakiye',
+      counterpartyName: 'SELIN KARACA',
+      description: 'EFT GELEN ADA 412 PARSEL 7 KAPORA / SELIN KARACA',
     ),
     BankTransaction(
       id: 'btx-003',
@@ -61,8 +64,43 @@ class MockSettlementData {
       currencyCode: 'TRY',
       transactionAt: DateTime(2026, 7, 12, 9, 40),
       matchStatus: BankTxMatchStatus.unmatched,
-      counterpartyName: 'ALTIN HAS TAKAS',
-      description: 'Has 12.40 gr karşılığı havale',
+      counterpartyName: 'HAS ALTIN TAKAS',
+      description: 'HAVALE GELEN HAS 12,40 GR KARSILIGI / HAS ALTIN TAKAS',
+    ),
+    BankTransaction(
+      id: 'btx-005',
+      bankAccountAlias: 'Ziraat TL',
+      direction: BankTxDirection.inbound,
+      amount: 250000,
+      currencyCode: 'TRY',
+      transactionAt: DateTime(2026, 7, 14, 12),
+      matchStatus: BankTxMatchStatus.unmatched,
+      counterpartyName: 'ORNEK FILO KIRALAMA A.S.',
+      description:
+          'GELEN EFT VKN 1234567890 ORNEK FILO KIRALAMA A.S. FATURA BEDELI',
+    ),
+    BankTransaction(
+      id: 'btx-006',
+      bankAccountAlias: 'Garanti İşletme',
+      direction: BankTxDirection.inbound,
+      amount: 50000,
+      currencyCode: 'TRY',
+      transactionAt: DateTime(2026, 7, 14, 13, 10),
+      matchStatus: BankTxMatchStatus.unmatched,
+      counterpartyName: 'AHMET YILMAZ',
+      description:
+          'HAVALE/EFT 34 ABC 123 KALAN BAKİYE GONDEREN AHMET YILMAZ',
+    ),
+    BankTransaction(
+      id: 'btx-007',
+      bankAccountAlias: 'Yapı Kredi TL',
+      direction: BankTxDirection.inbound,
+      amount: 1500,
+      currencyCode: 'TRY',
+      transactionAt: DateTime(2026, 7, 14, 13, 40),
+      matchStatus: BankTxMatchStatus.unmatched,
+      counterpartyName: 'BILINMEYEN GONDERICI',
+      description: 'GELEN HAVALE REFNO 998877',
     ),
   ];
 

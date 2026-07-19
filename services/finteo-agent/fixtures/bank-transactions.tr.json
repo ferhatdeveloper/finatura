@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "description": "TR banka örnek hareketleri — Finteo mock + matching test. Bankadan gelen para e-fatura KESMEZ; açık veresiye/fatura ile eşleşip mahsup edilir. E-fatura ayrı OCR→transformer→integrator yoludur.",
+  "accounts": [
+    {
+      "providerAccountRef": "garanti-isletme-tl",
+      "bankName": "Garanti BBVA",
+      "alias": "Garanti İşletme",
+      "iban": "TR640006200012345678901234"
+    },
+    {
+      "providerAccountRef": "ykb-tl",
+      "bankName": "Yapı Kredi",
+      "alias": "Yapı Kredi TL",
+      "iban": "TR670006701000000012345678"
+    },
+    {
+      "providerAccountRef": "ziraat-tl",
+      "bankName": "Ziraat Bankası",
+      "alias": "Ziraat TL",
+      "iban": "TR330001001000000012345678"
+    }
+  ],
+  "transactions": [
+    {
+      "idSuffix": "in-galeri-plaka",
+      "accountRef": "garanti-isletme-tl",
+      "direction": "inbound",
+      "amount": 185000,
+      "currencyCode": "TRY",
+      "minutesAgo": 90,
+      "counterpartyName": "AHMET YILMAZ",
+      "counterpartyIban": "TR120006400000112233445566",
+      "description": "HAVALE/EFT GELEN 34 ABC 123 ARAC BEDELI GONDEREN: AHMET YILMAZ TCKN:10000000146",
+      "kind": "inbound_eft_vehicle",
+      "matchHints": ["plate:34 ABC 123", "tckn:10000000146", "name:AHMET YILMAZ"]
+    },
+    {
+      "idSuffix": "in-emlak-ada",
+      "accountRef": "ykb-tl",
+      "direction": "inbound",
+      "amount": 42500.5,
+      "currencyCode": "TRY",
+      "minutesAgo": 220,
+      "counterpartyName": "SELIN KARACA",
+      "counterpartyIban": "TR450004600092348000123456",
+      "description": "EFT GELEN ADA 412 PARSEL 7 KAPORA / SELIN KARACA",
+      "kind": "inbound_eft_estate",
+      "matchHints": ["ada:412", "parsel:7", "name:SELIN KARACA"]
+    },
+    {
+      "idSuffix": "in-kuyum-has",
+      "accountRef": "garanti-isletme-tl",
+      "direction": "inbound",
+      "amount": 98000,
+      "currencyCode": "TRY",
+      "minutesAgo": 400,
+      "counterpartyName": "HAS ALTIN TAKAS",
+      "counterpartyIban": "TR880006200098765432109876",
+      "description": "HAVALE GELEN HAS 12,40 GR KARSILIGI / HAS ALTIN TAKAS",
+      "kind": "inbound_eft_gold",
+      "matchHints": ["gold:12.40", "name:HAS ALTIN"]
+    },
+    {
+      "idSuffix": "in-vkn-kurumsal",
+      "accountRef": "ziraat-tl",
+      "direction": "inbound",
+      "amount": 250000,
+      "currencyCode": "TRY",
+      "minutesAgo": 60,
+      "counterpartyName": "ORNEK FILO KIRALAMA A.S.",
+      "counterpartyIban": "TR560004600211223344556677",
+      "description": "GELEN EFT VKN 1234567890 ORNEK FILO KIRALAMA A.S. FATURA BEDELI",
+      "kind": "inbound_eft_corporate",
+      "matchHints": ["vkn:1234567890"]
+    },
+    {
+      "idSuffix": "in-partial-bakiye",
+      "accountRef": "garanti-isletme-tl",
+      "direction": "inbound",
+      "amount": 50000,
+      "currencyCode": "TRY",
+      "minutesAgo": 30,
+      "counterpartyName": "AHMET YILMAZ",
+      "counterpartyIban": "TR120006400000112233445566",
+      "description": "HAVALE/EFT 34 ABC 123 KALAN BAKİYE GONDEREN AHMET YILMAZ",
+      "kind": "inbound_eft_partial",
+      "matchHints": ["plate:34 ABC 123", "partial_amount"]
+    },
+    {
+      "idSuffix": "out-noter",
+      "accountRef": "garanti-isletme-tl",
+      "direction": "outbound",
+      "amount": 12500,
+      "currencyCode": "TRY",
+      "minutesAgo": 500,
+      "counterpartyName": "ISTANBUL 12 NOTERLIGI",
+      "counterpartyIban": null,
+      "description": "EFT GIDEN NOTER HARC VE DONER SERMAYE",
+      "kind": "outbound_noter",
+      "matchHints": []
+    },
+    {
+      "idSuffix": "out-pos-yakit",
+      "accountRef": "garanti-isletme-tl",
+      "direction": "outbound",
+      "amount": 4850.5,
+      "currencyCode": "TRY",
+      "minutesAgo": 20,
+      "counterpartyName": "TUPRAS A.S.",
+      "counterpartyIban": null,
+      "description": "POS HARCAMASI AKARYAKIT",
+      "kind": "outbound_pos",
+      "matchHints": []
+    },
+    {
+      "idSuffix": "in-unmatched-noise",
+      "accountRef": "ykb-tl",
+      "direction": "inbound",
+      "amount": 1500,
+      "currencyCode": "TRY",
+      "minutesAgo": 15,
+      "counterpartyName": "BILINMEYEN GONDERICI",
+      "counterpartyIban": "TR990001001234567890123456",
+      "description": "GELEN HAVALE REFNO 998877",
+      "kind": "inbound_unmatched",
+      "matchHints": []
+    }
+  ]
+}
